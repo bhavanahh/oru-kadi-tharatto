@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
@@ -17,6 +18,7 @@ import type { SnackExpertBadgeOutput } from '@/ai/flows/snack-expert-badge';
 import SnackExpertBadge from './snack-expert-badge';
 import { useToast } from '@/hooks/use-toast';
 import { ChartConfig, ChartContainer } from './ui/chart';
+import CameraUpload from './camera-upload';
 
 const parippuvadaSchema = z.object({
   diameter: z.coerce.number().min(1, 'Must be > 0').max(100, 'Must be < 100'),
@@ -69,6 +71,7 @@ export default function SnackCalculator() {
 
   const handleAreaCheck = (area: number) => {
     startTransition(async () => {
+      setExpertBadge(null);
       const result = await checkSnackExpert({ snackArea: area });
       if (result.reason.includes('Could not determine')) {
         toast({
@@ -80,6 +83,20 @@ export default function SnackCalculator() {
       setExpertBadge(result);
     });
   };
+  
+  const activeSnackType = activeTab === 'camera-upload' ? 'parippuvada' : activeTab;
+
+
+  const handleDimensionsUpdate = (dimensions: {diameter?: number | null, length?: number | null, width?: number | null}) => {
+    if (dimensions.diameter) {
+      parippuvadaForm.setValue('diameter', dimensions.diameter, { shouldValidate: true });
+    }
+    if (dimensions.length && dimensions.width) {
+      vazhaikkapamForm.setValue('length', dimensions.length, { shouldValidate: true });
+      vazhaikkapamForm.setValue('width', dimensions.width, { shouldValidate: true });
+    }
+  };
+
 
   useEffect(() => {
     parippuvadaForm.trigger('diameter');
@@ -88,7 +105,7 @@ export default function SnackCalculator() {
       const radius = diameter / 2;
       const area = Math.PI * radius * radius;
       setParippuvadaArea(area);
-      if (activeTab === 'parippuvada') handleAreaCheck(area);
+      if (activeSnackType === 'parippuvada') handleAreaCheck(area);
     }
   }, [diameter, parippuvadaForm.formState.isValid]);
 
@@ -98,7 +115,7 @@ export default function SnackCalculator() {
     if (success) {
       const area = Math.PI * (length / 2) * (width / 2);
       setVazhaikkapamArea(area);
-      if (activeTab === 'vazhaikkapam') handleAreaCheck(area);
+      if (activeSnackType === 'vazhaikkapam') handleAreaCheck(area);
     }
   }, [length, width, vazhaikkapamForm.formState.isValid]);
   
@@ -116,9 +133,10 @@ export default function SnackCalculator() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="parippuvada">Parippuvada</TabsTrigger>
               <TabsTrigger value="vazhaikkapam">Vazhaikkapam</TabsTrigger>
+              <TabsTrigger value="camera-upload">Camera</TabsTrigger>
             </TabsList>
             <TabsContent value="parippuvada" className="mt-6">
               <div className="grid md:grid-cols-2 gap-6 items-center">
@@ -143,7 +161,7 @@ export default function SnackCalculator() {
                   <ParippuvadaIcon className="h-16 w-16 mx-auto text-primary" />
                   <p className="text-sm text-muted-foreground">Surface Area</p>
                   <p className="text-4xl font-bold font-mono text-primary">{parippuvadaArea.toFixed(1)} cm²</p>
-                  {activeTab === 'parippuvada' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
+                  {activeSnackType === 'parippuvada' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
                 </div>
               </div>
             </TabsContent>
@@ -183,9 +201,12 @@ export default function SnackCalculator() {
                   <VazhaikkapamIcon className="h-16 w-16 mx-auto text-accent" />
                    <p className="text-sm text-muted-foreground">Surface Area</p>
                   <p className="text-4xl font-bold font-mono text-accent">{vazhaikkapamArea.toFixed(1)} cm²</p>
-                  {activeTab === 'vazhaikkapam' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
+                  {activeSnackType === 'vazhaikkapam' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
                 </div>
               </div>
+            </TabsContent>
+            <TabsContent value="camera-upload" className="mt-6">
+              <CameraUpload onDimensionsCalculated={handleDimensionsUpdate} />
             </TabsContent>
           </Tabs>
         </CardContent>
