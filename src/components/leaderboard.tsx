@@ -1,16 +1,13 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Crown } from 'lucide-react';
 import { ParippuvadaIcon, VazhaikkapamIcon } from './snack-icons';
-
-export interface SnackData {
-  name: string;
-  area: number;
-  type: 'parippuvada' | 'vazhaikkapam';
-}
+import type { Snack } from '@/app/actions';
+import Image from 'next/image';
 
 interface LeaderboardProps {
-  snacks: SnackData[];
+  snacks: Snack[];
 }
 
 const rankColors = [
@@ -65,7 +62,7 @@ export default function Leaderboard({ snacks }: LeaderboardProps) {
           </TableHeader>
           <TableBody>
             {snacks.map((snack, index) => (
-              <TableRow key={index} className="font-medium">
+              <TableRow key={snack.id} className="font-medium">
                 <TableCell className="text-center text-lg">
                     <span className={rankColors[index] || 'text-muted-foreground'}>
                         {index + 1}
@@ -73,11 +70,8 @@ export default function Leaderboard({ snacks }: LeaderboardProps) {
                 </TableCell>
                 <TableCell>
                     <div className='flex items-center gap-3'>
-                        {snack.type === 'parippuvada' ? 
-                            <ParippuvadaIcon className="h-6 w-6 text-primary/80" /> : 
-                            <VazhaikkapamIcon className="h-6 w-6 text-accent/80" />
-                        }
-                        <span className="font-body capitalize">{snack.name}</span>
+                        <Image src={snack.imageData} alt={snack.type} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
+                        <span className="font-body capitalize">{snack.type}</span>
                     </div>
                 </TableCell>
                 <TableCell className="text-right font-mono text-lg">{snack.area.toFixed(1)}</TableCell>

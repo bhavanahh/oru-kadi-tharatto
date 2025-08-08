@@ -1,16 +1,16 @@
 
 'use client';
 
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ParippuvadaIcon, VazhaikkapamIcon } from '@/components/snack-icons';
-import { type SnackAnalysisResult } from '@/app/actions';
+import { type SnackAnalysisResult, type Snack, getLeaderboardData } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import CameraUpload from './camera-upload';
-import { UtensilsCrossed, MessageSquareQuote } from 'lucide-react';
+import { UtensilsCrossed, MessageSquareQuote, Loader2 } from 'lucide-react';
 import Image from 'next/image';
-
+import Leaderboard from './leaderboard';
+import { Skeleton } from './ui/skeleton';
 
 interface SnackResult extends SnackAnalysisResult {
     imageData: string | null;
@@ -18,9 +18,21 @@ interface SnackResult extends SnackAnalysisResult {
 
 export default function SnackAnalyzer() {
   const [snackResult, setSnackResult] = useState<SnackResult | null>(null);
+  const [leaderboard, setLeaderboard] = useState<Snack[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const handleAnalysisComplete = (result: SnackAnalysisResult & { imageData: string }) => {
+  useEffect(() => {
+    async function fetchInitialData() {
+        setIsLoading(true);
+        const { leaderboard } = await getLeaderboardData();
+        setLeaderboard(leaderboard);
+        setIsLoading(false);
+    }
+    fetchInitialData();
+  }, [])
+
+  const handleAnalysisComplete = (result: SnackAnalysisResult) => {
     if (result.error) {
       toast({
         variant: "destructive",
@@ -31,11 +43,12 @@ export default function SnackAnalyzer() {
       return;
     }
     
-    setSnackResult({ ...result, imageData: result.imageData });
+    setSnackResult({ ...result, imageData: result.leaderboard.find(s => s.area === result.area)?.imageData ?? null });
+    setLeaderboard(result.leaderboard);
   };
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
         <div className="lg:col-span-2 space-y-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
@@ -121,6 +134,23 @@ export default function SnackAnalyzer() {
                         </div>
                     </CardContent>
                 </Card>
+            )}
+        </div>
+        <div className="lg:col-span-1 space-y-8">
+            {isLoading ? (
+                <Card>
+                    <CardHeader>
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+            ) : (
+                <Leaderboard snacks={leaderboard} />
             )}
         </div>
     </div>

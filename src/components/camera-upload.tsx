@@ -6,12 +6,12 @@ import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, FileUp, Copy } from 'lucide-react';
-import { analyzeSnack } from '@/app/actions';
+import { analyzeAndCompareSnack } from '@/app/actions';
 import type { SnackAnalysisResult } from '@/app/actions';
 import Image from 'next/image';
 
 interface CameraUploadProps {
-    onAnalysisComplete: (result: SnackAnalysisResult & { imageData: string }) => void;
+    onAnalysisComplete: (result: SnackAnalysisResult) => void;
 }
 
 export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) {
@@ -81,14 +81,14 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
     startProcessing(async () => {
       setAnalysisError(null);
       
-      const result = await analyzeSnack({ imageData });
+      const result = await analyzeAndCompareSnack({ imageData });
       
       if (result.error) {
         const errorMessage = result.error ?? "Ee snack manassilayilla. Vere onnu tharumo?";
         setAnalysisError(errorMessage);
         setImagePreview(null);
       } else {
-        onAnalysisComplete({ ...result, imageData });
+        onAnalysisComplete(result);
         setImagePreview(null);
         toast({
           title: `Ithu ${result.snackType} aanu!`,
