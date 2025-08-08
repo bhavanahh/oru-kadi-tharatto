@@ -3,16 +3,16 @@
 
 import { getSnackCommentary, type SnackCommentaryInput } from '@/ai/flows/snack-commentary';
 import { getSnackDimensions, type SnackDimensionsInput, type SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
-import { getLargestSnack, saveSnack, type Snack, getTopSnacks } from '@/services/snack-service';
 import { z } from 'zod';
 
 const SnackImageSchema = z.object({
   imageData: z.string(),
 });
 
+// The result now won't contain leaderboard data, but just the analysis of the one snack.
 export type SnackAnalysisResult = (SnackDimensionsOutput & { area: number | null; commentary: string | null });
 
-export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<SnackAnalysisResult> {
+export async function analyzeSnack(data: SnackDimensionsInput): Promise<SnackAnalysisResult> {
   const parsedData = SnackImageSchema.safeParse(data);
 
   if (!parsedData.success) {
@@ -55,24 +55,16 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
         }
     }
 
-    const largestSnack = await getLargestSnack(dimensionsResult.snackType);
+    // Since we removed Firebase, we can't compare to a largest snack.
+    // We'll pass 0 for the largest snack area to get a "first entry" comment.
     const commentaryInput: SnackCommentaryInput = {
       snackType: dimensionsResult.snackType,
       newSnackArea: area,
-      largestSnackArea: largestSnack?.area || 0,
+      largestSnackArea: 0,
     };
 
     const commentaryResult = await getSnackCommentary(commentaryInput);
 
-    const newSnack: Omit<Snack, 'id'> = {
-        type: dimensionsResult.snackType,
-        name: `Your ${dimensionsResult.snackType}`,
-        area: area,
-        createdAt: new Date(),
-    };
-    
-    await saveSnack(newSnack);
-    
     return {
       ...dimensionsResult,
       area,
@@ -100,16 +92,4 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
       error: `Could not analyze snack image at this time: ${errorMessage}`,
     };
   }
-}
-
-export async function getLeaderboardData() {
-    try {
-        const parippuvadas = await getTopSnacks('parippuvada', 5);
-        const vazhaikkapams = await getTopSnacks('vazhaikkapam', 5);
-        const leaderboard = [...parippuvadas, ...vazhaikkapams].sort((a,b) => b.area - a.area).slice(0,5);
-        return { leaderboard };
-    } catch(error) {
-        console.error("Error fetching leaderboard data:", error);
-        return { leaderboard: [] };
-    }
 }
