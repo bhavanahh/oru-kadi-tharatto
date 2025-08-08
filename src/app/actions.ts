@@ -40,9 +40,9 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
     }
     
     let area: number | null = null;
-    if (dimensionsResult.snackType === 'parippuvada' && dimensionsResult.diameter) {
+    if (dimensionsResult.snackType === 'parippuvada' && dimensionsResult.diameter && dimensionsResult.diameter > 0) {
         area = Math.PI * (dimensionsResult.diameter / 2) ** 2;
-    } else if (dimensionsResult.snackType === 'vazhaikkapam' && dimensionsResult.length && dimensionsResult.width) {
+    } else if (dimensionsResult.snackType === 'vazhaikkapam' && dimensionsResult.length && dimensionsResult.length > 0 && dimensionsResult.width && dimensionsResult.width > 0) {
         area = Math.PI * (dimensionsResult.length / 2) * (dimensionsResult.width / 2);
     }
     
@@ -51,7 +51,7 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
             ...dimensionsResult,
             area: null,
             commentary: null,
-            error: "Could not calculate area due to missing dimensions."
+            error: "Could not calculate area due to missing or invalid dimensions."
         }
     }
 
