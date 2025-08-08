@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, FileUp, Copy } from 'lucide-react';
 import { analyzeAndStoreSnack } from '@/app/actions';
 import type { SnackAnalysisResult } from '@/app/actions';
+import Image from 'next/image';
 
 interface CameraUploadProps {
     onAnalysisComplete: (result: SnackAnalysisResult & { imageData: string }) => void;
@@ -19,6 +20,7 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isProcessing, startProcessing] = useTransition();
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -66,6 +68,7 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
         context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
         const dataUrl = canvas.toDataURL('image/jpeg');
         setAnalysisError(null);
+        setImagePreview(dataUrl);
         handleAnalyze(dataUrl);
       }
     }
@@ -82,8 +85,10 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
       if (result.error) {
         const errorMessage = result.error ?? "Ee snack manassilayilla. Vere onnu tharumo?";
         setAnalysisError(errorMessage);
+        setImagePreview(null);
       } else {
         onAnalysisComplete({ ...result, imageData });
+        setImagePreview(null);
         toast({
           title: `Ithu ${result.snackType} aanu!`,
           description: "Alavukal update cheythittundu.",
@@ -99,11 +104,18 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
       reader.onload = (e) => {
         const imageData = e.target?.result as string;
         setAnalysisError(null);
+        setImagePreview(imageData);
         handleAnalyze(imageData);
       };
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleUploadClick = () => {
+    setImagePreview(null);
+    setAnalysisError(null);
+    fileInputRef.current?.click();
+  }
 
   const copyToClipboard = () => {
     if (analysisError) {
@@ -120,7 +132,7 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
     <div className="space-y-4">
         <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center aspect-video">
             {isProcessing && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-muted/80 z-10">
+                 <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
                     <div className="text-center p-4 bg-background/80 rounded-lg shadow-lg">
                         <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                         <p className="mt-2 text-muted-foreground">Analyzing snack...</p>
@@ -128,6 +140,16 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
                 </div>
             )}
             
+            {imagePreview && !isProcessing && (
+                 <Image
+                    src={imagePreview}
+                    alt="Snack preview"
+                    layout="fill"
+                    objectFit="contain"
+                    className="z-10"
+                />
+            )}
+
             <video ref={videoRef} className="w-full h-auto object-cover rounded-lg" autoPlay muted playsInline />
             <canvas ref={canvasRef} className="hidden" />
 
@@ -167,7 +189,7 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
             <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission !== true || isProcessing}>
                 <Camera className="mr-2" /> Capture
             </Button>
-            <Button onClick={() => fileInputRef.current?.click()} variant="outline" disabled={isProcessing}>
+            <Button onClick={handleUploadClick} variant="outline" disabled={isProcessing}>
                 <FileUp className="mr-2" /> Upload File
             </Button>
             <input type="file" ref={fileInputRef} id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
