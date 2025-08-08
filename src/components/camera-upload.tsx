@@ -5,8 +5,9 @@ import { useRef, useState, useEffect, useTransition } from 'react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Loader2, Upload } from 'lucide-react';
+import { Camera, Loader2, Upload, FileUp } from 'lucide-react';
 import { getDimensionsFromImage } from '@/app/actions';
+import { Card, CardContent } from './ui/card';
 
 interface CameraUploadProps {
     onDimensionsCalculated: (dimensions: { snackType: 'parippuvada' | 'vazhaikkapam' | 'unknown', diameter?: number | null; length?: number | null; width?: number | null }) => void;
@@ -15,6 +16,7 @@ interface CameraUploadProps {
 export default function CameraUpload({ onDimensionsCalculated }: CameraUploadProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isProcessing, startProcessing] = useTransition();
@@ -100,7 +102,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
           description: "Alavukal update cheythittundu.",
         });
       }
-      setCapturedImage(null); // Return to camera view after analysis
+      setCapturedImage(null);
     });
   };
 
@@ -114,52 +116,56 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
       reader.readAsDataURL(file);
     }
   };
-
-
-  if (hasCameraPermission === null) {
-    return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
-  }
   
   return (
-    <div className="space-y-4">
-      <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center">
-        {capturedImage ? (
-        <img src={capturedImage} alt="Captured snack" className="max-h-[50vh] w-auto h-auto rounded-lg" />
-        ) : (
-        <video ref={videoRef} className="w-full h-auto rounded-lg" autoPlay muted playsInline />
-        )}
-        <canvas ref={canvasRef} className="hidden" />
-      </div>
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <CardContent className="p-4">
+            <div className="space-y-4">
+            <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center aspect-video">
+                {capturedImage ? (
+                <img src={capturedImage} alt="Captured snack" className="max-h-full max-w-full w-auto h-auto rounded-lg object-contain" />
+                ) : (
+                <video ref={videoRef} className="w-full h-full object-cover rounded-lg" autoPlay muted playsInline />
+                )}
+                <canvas ref={canvasRef} className="hidden" />
+                 {hasCameraPermission === null && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-muted/80">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                )}
+            </div>
 
-      {hasCameraPermission === false && !capturedImage && (
-          <Alert variant="destructive">
-              <AlertTitle>Camera Access Required</AlertTitle>
-              <AlertDescription>
-                  Please allow camera access to use this feature or upload a file.
-              </AlertDescription>
-          </Alert>
-      )}
+            {hasCameraPermission === false && !capturedImage && (
+                <Alert variant="destructive">
+                    <AlertTitle>Camera Access Required</AlertTitle>
+                    <AlertDescription>
+                        Please allow camera access to use this feature or upload a file.
+                    </AlertDescription>
+                </Alert>
+            )}
 
-      {capturedImage ? (
-        <div className="flex gap-2">
-            <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full">
-            {isProcessing ? <Loader2 className="animate-spin" /> : 'Analyze Snack'}
-            </Button>
-            <Button onClick={() => setCapturedImage(null)} variant="outline">
-            Retake
-            </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4">
-            <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission === false}>
-                <Camera className="mr-2" /> Capture
-            </Button>
-             <Button onClick={() => document.getElementById('file-upload')?.click()} variant="outline">
-                <Upload className="mr-2" /> Upload File
-            </Button>
-            <input type="file" id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
-        </div>
-      )}
-    </div>
+            {capturedImage ? (
+                <div className="flex gap-2">
+                    <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full bg-accent hover:bg-accent/90">
+                    {isProcessing ? <Loader2 className="animate-spin" /> : 'Analyze Snack'}
+                    </Button>
+                    <Button onClick={() => setCapturedImage(null)} variant="outline">
+                    Retake
+                    </Button>
+                </div>
+            ) : (
+                <div className="grid grid-cols-2 gap-4">
+                    <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission !== true}>
+                        <Camera className="mr-2" /> Capture
+                    </Button>
+                    <Button onClick={() => fileInputRef.current?.click()} variant="outline">
+                        <FileUp className="mr-2" /> Upload File
+                    </Button>
+                    <input type="file" ref={fileInputRef} id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                </div>
+            )}
+            </div>
+        </CardContent>
+    </Card>
   );
 }

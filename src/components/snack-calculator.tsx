@@ -21,6 +21,7 @@ import { ChartConfig, ChartContainer } from './ui/chart';
 import CameraUpload from './camera-upload';
 import type { SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
 import Leaderboard, { type SnackData } from './leaderboard';
+import { UtensilsCrossed } from 'lucide-react';
 
 const parippuvadaSchema = z.object({
   diameter: z.coerce.number().min(1, 'Must be > 0').max(100, 'Must be < 100'),
@@ -88,7 +89,9 @@ export default function SnackCalculator() {
     setLeaderboard(updatedLeaderboard);
   };
 
-  const handleAreaCheck = (area: number) => {
+  const handleAreaCheck = (area: number, type: 'parippuvada' | 'vazhaikkapam') => {
+    if (area <= 0) return;
+    
     startTransition(async () => {
       setExpertBadge(null);
       const result = await checkSnackExpert({ snackArea: area });
@@ -102,9 +105,9 @@ export default function SnackCalculator() {
       setExpertBadge(result);
     });
 
-    if (activeTab === 'parippuvada') {
+    if (type === 'parippuvada') {
       updateLeaderboard('Nammude Parippuvada', area, 'parippuvada');
-    } else if (activeTab === 'vazhaikkapam') {
+    } else if (type === 'vazhaikkapam') {
       updateLeaderboard('Nammude Vazhaikkapam', area, 'vazhaikkapam');
     }
   };
@@ -132,7 +135,9 @@ export default function SnackCalculator() {
       const radius = diameter / 2;
       const area = Math.PI * radius * radius;
       setParippuvadaArea(area);
-      if (activeSnackType === 'parippuvada') handleAreaCheck(area);
+      if (activeSnackType === 'parippuvada') handleAreaCheck(area, 'parippuvada');
+    } else {
+      setParippuvadaArea(0);
     }
   }, [diameter, parippuvadaForm.formState.isValid, activeSnackType]);
 
@@ -142,149 +147,158 @@ export default function SnackCalculator() {
     if (success) {
       const area = Math.PI * (length / 2) * (width / 2);
       setVazhaikkapamArea(area);
-      if (activeSnackType === 'vazhaikkapam') handleAreaCheck(area);
+      if (activeSnackType === 'vazhaikkapam') handleAreaCheck(area, 'vazhaikkapam');
+    } else {
+        setVazhaikkapamArea(0);
     }
   }, [length, width, vazhaikkapamForm.formState.isValid, activeSnackType]);
   
   const chartData = [
-    { snack: 'Parippuvada', area: parippuvadaArea, fill: 'var(--color-parippuvada)' },
-    { snack: 'Vazhaikkapam', area: vazhaikkapamArea, fill: 'var(--color-vazhaikkapam)' },
+    { snack: 'Parippuvada', area: parippuvadaArea > 0 ? parippuvadaArea : null, fill: 'var(--color-parippuvada)' },
+    { snack: 'Vazhaikkapam', area: vazhaikkapamArea > 0 ? vazhaikkapamArea: null, fill: 'var(--color-vazhaikkapam)' },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline">Snack Alavumaash</CardTitle>
-          <CardDescription>Snackinte alavukal koduthu area kandu pidikkam.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="parippuvada">Parippuvada</TabsTrigger>
-              <TabsTrigger value="vazhaikkapam">Vazhaikkapam</TabsTrigger>
-              <TabsTrigger value="camera-upload">Camera</TabsTrigger>
-            </TabsList>
-            <TabsContent value="parippuvada" className="mt-6">
-              <div className="grid md:grid-cols-2 gap-6 items-center">
-                <Form {...parippuvadaForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={parippuvadaForm.control}
-                      name="diameter"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Diameter (cm)</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="e.g., 10" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-                <div className="bg-muted rounded-lg p-6 text-center space-y-3">
-                  <ParippuvadaIcon className="h-16 w-16 mx-auto text-primary" />
-                  <p className="text-sm text-muted-foreground">Surface Area</p>
-                  <p className="text-4xl font-bold font-mono text-primary">{parippuvadaArea.toFixed(1)} cm²</p>
-                  {activeSnackType === 'parippuvada' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="vazhaikkapam" className="mt-6">
-               <div className="grid md:grid-cols-2 gap-6 items-center">
-                <Form {...vazhaikkapamForm}>
-                  <form className="space-y-4">
-                    <FormField
-                      control={vazhaikkapamForm.control}
-                      name="length"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Length (cm)</FormLabel>
-                          <FormControl>
-                             <Input type="number" placeholder="e.g., 12" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                     <FormField
-                      control={vazhaikkapamForm.control}
-                      name="width"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Width (cm)</FormLabel>
-                          <FormControl>
-                             <Input type="number" placeholder="e.g., 7" {...field} />
-                          </FormControl>
-                           <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </form>
-                </Form>
-                <div className="bg-muted rounded-lg p-6 text-center space-y-3">
-                  <VazhaikkapamIcon className="h-16 w-16 mx-auto text-accent" />
-                   <p className="text-sm text-muted-foreground">Surface Area</p>
-                  <p className="text-4xl font-bold font-mono text-accent">{vazhaikkapamArea.toFixed(1)} cm²</p>
-                  {activeSnackType === 'vazhaikkapam' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="camera-upload" className="mt-6">
-              <CameraUpload onDimensionsCalculated={handleDimensionsUpdate} />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-       <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="font-headline">Snack Porattam</CardTitle>
-          <CardDescription>Ningade snackukal thammil oru cheriya malsaram.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[250px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis dataKey="snack" tickLine={false} tickMargin={10} axisLine={false} />
-              <YAxis />
-              <ChartTooltip
-                content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="rounded-lg border bg-background p-2 shadow-sm">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex flex-col">
-                            <span className="text-[0.70rem] uppercase text-muted-foreground">
-                              Snack
-                            </span>
-                            <span className="font-bold text-muted-foreground">
-                              {payload[0].payload.snack}
-                            </span>
-                          </div>
-                          <div className="flex flex-col">
-                            <span className="text-[0.70rem] uppercase text-muted-foreground">
-                              Area
-                            </span>
-                            <span className="font-bold">
-                              {payload[0].value?.toFixed(1)} cm²
-                            </span>
-                          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+        <div className="lg:col-span-2 space-y-8">
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardHeader>
+                <CardTitle className="font-headline">Snack Alavumaash</CardTitle>
+                <CardDescription>Snackinte alavukal koduthu area kandu pidikkam.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="parippuvada">Parippuvada</TabsTrigger>
+                    <TabsTrigger value="vazhaikkapam">Vazhaikkapam</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="parippuvada" className="mt-6">
+                    <div className="grid md:grid-cols-2 gap-6 items-center">
+                        <Form {...parippuvadaForm}>
+                        <form className="space-y-4">
+                            <FormField
+                            control={parippuvadaForm.control}
+                            name="diameter"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Diameter (cm)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="e.g., 10" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        </form>
+                        </Form>
+                        <div className="bg-muted rounded-lg p-6 text-center space-y-3">
+                        <ParippuvadaIcon className="h-16 w-16 mx-auto text-primary" />
+                        <p className="text-sm text-muted-foreground">Surface Area</p>
+                        <p className="text-4xl font-bold font-mono text-primary">{parippuvadaArea.toFixed(1)} cm²</p>
+                        {activeSnackType === 'parippuvada' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
                         </div>
-                      </div>
-                    )
-                  }
+                    </div>
+                    </TabsContent>
+                    <TabsContent value="vazhaikkapam" className="mt-6">
+                    <div className="grid md:grid-cols-2 gap-6 items-center">
+                        <Form {...vazhaikkapamForm}>
+                        <form className="space-y-4">
+                            <FormField
+                            control={vazhaikkapamForm.control}
+                            name="length"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Length (cm)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="e.g., 12" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                            <FormField
+                            control={vazhaikkapamForm.control}
+                            name="width"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Width (cm)</FormLabel>
+                                <FormControl>
+                                    <Input type="number" placeholder="e.g., 7" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        </form>
+                        </Form>
+                        <div className="bg-muted rounded-lg p-6 text-center space-y-3">
+                        <VazhaikkapamIcon className="h-16 w-16 mx-auto text-accent" />
+                        <p className="text-sm text-muted-foreground">Surface Area</p>
+                        <p className="text-4xl font-bold font-mono text-accent">{vazhaikkapamArea.toFixed(1)} cm²</p>
+                        {activeSnackType === 'vazhaikkapam' && <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />}
+                        </div>
+                    </div>
+                    </TabsContent>
+                </Tabs>
+                </CardContent>
+            </Card>
 
-                  return null
-                }}
-              />
-              <Bar dataKey="area" radius={8} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
-      <Leaderboard snacks={leaderboard} />
+            <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <UtensilsCrossed className="w-6 h-6 text-primary" />
+                        <div>
+                        <CardTitle className="font-headline">Snack Porattam</CardTitle>
+                        <CardDescription>Ningade snackukal thammil oru cheriya malsaram.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                <ChartContainer config={chartConfig} className="h-[250px] w-full">
+                    <BarChart accessibilityLayer data={chartData} margin={{ top: 20 }}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis dataKey="snack" tickLine={false} tickMargin={10} axisLine={false} />
+                    <YAxis />
+                    <ChartTooltip
+                        content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                            return (
+                            <div className="rounded-lg border bg-background p-2 shadow-sm">
+                                <div className="grid grid-cols-2 gap-2">
+                                <div className="flex flex-col">
+                                    <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                    Snack
+                                    </span>
+                                    <span className="font-bold text-muted-foreground">
+                                    {payload[0].payload.snack}
+                                    </span>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[0.70rem] uppercase text-muted-foreground">
+                                    Area
+                                    </span>
+                                    <span className="font-bold">
+                                    {payload[0].value?.toFixed(1)} cm²
+                                    </span>
+                                </div>
+                                </div>
+                            </div>
+                            )
+                        }
+
+                        return null
+                        }}
+                    />
+                    <Bar dataKey="area" radius={8} />
+                    </BarChart>
+                </ChartContainer>
+                </CardContent>
+            </Card>
+        </div>
+        <div className="lg:col-span-1 space-y-8">
+            <CameraUpload onDimensionsCalculated={handleDimensionsUpdate} />
+            <Leaderboard snacks={leaderboard} />
+        </div>
     </div>
   );
 }
