@@ -70,19 +70,21 @@ const snackDimensionsFlow = ai.defineFlow(
           diameter: null,
           length: null,
           width: null,
-          error: 'Could not analyze image.',
+          error: 'Could not analyze image. The model returned no output.',
         };
       }
       return output;
     } catch(e) {
       console.error(e);
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred during analysis.';
       return {
           snackType: 'unknown',
           diameter: null,
           length: null,
           width: null,
-          error: 'Could not analyze image.',
+          error: `Could not analyze image: ${errorMessage}`,
       };
     }
   }
 );
+
