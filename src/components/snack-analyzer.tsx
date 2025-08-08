@@ -38,14 +38,14 @@ export default function SnackAnalyzer() {
   const [leaderboard, setLeaderboard] = useState<SnackData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchLeaderboard = async () => {
-    setIsLoading(true);
-    const { leaderboard: newLeaderboard } = await getLeaderboardData();
-    setLeaderboard(newLeaderboard);
-    setIsLoading(false);
-  };
-  
   useEffect(() => {
+    const fetchLeaderboard = async () => {
+      setIsLoading(true);
+      const { leaderboard: newLeaderboard } = await getLeaderboardData();
+      setLeaderboard(newLeaderboard);
+      setIsLoading(false);
+    };
+    
     fetchLeaderboard();
   }, []);
   
@@ -64,6 +64,10 @@ export default function SnackAnalyzer() {
 
     if (result.snackType && result.snackType !== 'unknown' && result.area && result.area > 0) {
       // After a new snack is analyzed, refresh the leaderboard to show it.
+      const fetchLeaderboard = async () => {
+        const { leaderboard: newLeaderboard } = await getLeaderboardData();
+        setLeaderboard(newLeaderboard);
+      };
       fetchLeaderboard();
     }
   };
