@@ -122,11 +122,11 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
   
   return (
     <div className="space-y-4">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+      <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center">
         {capturedImage ? (
-        <img src={capturedImage} alt="Captured snack" className="h-full w-full object-cover" />
+        <img src={capturedImage} alt="Captured snack" className="max-h-[50vh] w-auto h-auto rounded-lg" />
         ) : (
-        <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
+        <video ref={videoRef} className="max-h-[50vh] w-auto h-auto rounded-lg" autoPlay muted playsInline />
         )}
         <canvas ref={canvasRef} className="hidden" />
       </div>
