@@ -1,42 +1,18 @@
 
 'use server';
 
-import { getSnackExpertBadge, type SnackExpertBadgeInput, type SnackExpertBadgeOutput } from '@/ai/flows/snack-expert-badge';
-import { z } from 'zod';
+import { getSnackCommentary, type SnackCommentaryInput } from '@/ai/flows/snack-commentary';
 import { getSnackDimensions, type SnackDimensionsInput, type SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
-
-const SnackAreaSchema = z.object({
-  snackArea: z.number(),
-});
-
-export async function checkSnackExpert(data: SnackExpertBadgeInput): Promise<SnackExpertBadgeOutput> {
-  const parsedData = SnackAreaSchema.safeParse(data);
-
-  if (!parsedData.success) {
-    return {
-      isExpert: false,
-      reason: 'Invalid input provided.',
-    };
-  }
-  
-  try {
-    const result = await getSnackExpertBadge(parsedData.data);
-    return result;
-  } catch (error) {
-    console.error('Error in GenAI flow:', error);
-    return {
-      isExpert: false,
-      reason: 'Could not determine snack expertise at this time. Please try again later.',
-    };
-  }
-}
-
+import { getLargestSnack, saveSnack, type Snack } from '@/services/snack-service';
+import { z } from 'zod';
 
 const SnackImageSchema = z.object({
   imageData: z.string(),
 });
 
-export async function getDimensionsFromImage(data: SnackDimensionsInput): Promise<SnackDimensionsOutput> {
+export type SnackAnalysisResult = (SnackDimensionsOutput & { area: number | null; commentary: string | null });
+
+export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<SnackAnalysisResult> {
   const parsedData = SnackImageSchema.safeParse(data);
 
   if (!parsedData.success) {
@@ -45,21 +21,74 @@ export async function getDimensionsFromImage(data: SnackDimensionsInput): Promis
       diameter: null,
       length: null,
       width: null,
+      area: null,
+      commentary: null,
       error: 'Invalid input provided.',
     };
   }
 
   try {
-    const result = await getSnackDimensions(parsedData.data);
-    return result;
+    const dimensionsResult = await getSnackDimensions(parsedData.data);
+
+    if (dimensionsResult.error || !dimensionsResult.snackType || dimensionsResult.snackType === 'unknown') {
+      return {
+        ...dimensionsResult,
+        area: null,
+        commentary: null,
+        error: dimensionsResult.error || 'Could not identify the snack.',
+      };
+    }
+    
+    let area: number | null = null;
+    if (dimensionsResult.snackType === 'parippuvada' && dimensionsResult.diameter) {
+        area = Math.PI * (dimensionsResult.diameter / 2) ** 2;
+    } else if (dimensionsResult.snackType === 'vazhaikkapam' && dimensionsResult.length && dimensionsResult.width) {
+        area = Math.PI * (dimensionsResult.length / 2) * (dimensionsResult.width / 2);
+    }
+    
+    if (area === null) {
+        return {
+            ...dimensionsResult,
+            area: null,
+            commentary: null,
+            error: "Could not calculate area due to missing dimensions."
+        }
+    }
+
+    const largestSnack = await getLargestSnack(dimensionsResult.snackType);
+    const commentaryInput: SnackCommentaryInput = {
+      snackType: dimensionsResult.snackType,
+      newSnackArea: area,
+      largestSnackArea: largestSnack?.area || 0,
+    };
+
+    const commentaryResult = await getSnackCommentary(commentaryInput);
+
+    const newSnack: Omit<Snack, 'id'> = {
+        type: dimensionsResult.snackType,
+        area: area,
+        createdAt: new Date(),
+    };
+    
+    await saveSnack(newSnack);
+    
+    return {
+      ...dimensionsResult,
+      area,
+      commentary: commentaryResult.comment,
+    };
+
   } catch (error) {
     console.error('Error in GenAI flow for image analysis:', error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     return {
       snackType: 'unknown',
       diameter: null,
       length: null,
       width: null,
-      error: 'Could not analyze snack image at this time. Please try again later.',
+      area: null,
+      commentary: null,
+      error: `Could not analyze snack image at this time: ${errorMessage}`,
     };
   }
 }
