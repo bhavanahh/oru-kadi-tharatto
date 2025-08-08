@@ -62,16 +62,27 @@ const snackDimensionsFlow = ai.defineFlow(
     outputSchema: SnackDimensionsOutputSchema,
   },
   async (input) => {
-    const { output } = await snackDimensionsPrompt(input);
-    if (output === null || output === undefined) {
+    try {
+      const { output } = await snackDimensionsPrompt(input);
+      if (output === null || output === undefined) {
+        return {
+          snackType: 'unknown',
+          diameter: null,
+          length: null,
+          width: null,
+          error: 'Could not analyze image.',
+        };
+      }
+      return output;
+    } catch(e) {
+      console.error(e);
       return {
-        snackType: 'unknown',
-        diameter: null,
-        length: null,
-        width: null,
-        error: 'Could not analyze image.',
+          snackType: 'unknown',
+          diameter: null,
+          length: null,
+          width: null,
+          error: 'Could not analyze image.',
       };
     }
-    return output;
   }
 );
