@@ -67,15 +67,15 @@ export default function SnackAnalyzer() {
     
     setSnackResult({ ...result, imageData: result.imageData });
 
-    if (result.snackType && result.area && result.area > 0) {
+    if (result.snackType && result.snackType !== 'unknown' && result.area && result.area > 0) {
       updateLeaderboard(`Your ${result.snackType}`, result.area, result.snackType);
     }
   };
   
-  const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
-  const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
-
   useEffect(() => {
+    const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
+    const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
+
     const data = [];
     if (latestParippuvada) {
         data.push({ snack: 'Parippuvada', area: latestParippuvada.area, fill: 'var(--color-parippuvada)' });
@@ -84,7 +84,7 @@ export default function SnackAnalyzer() {
         data.push({ snack: 'Vazhaikkapam', area: latestVazhaikkapam.area, fill: 'var(--color-vazhaikkapam)' });
     }
     setChartData(data);
-  }, [latestParippuvada, latestVazhaikkapam]);
+  }, [leaderboard]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
@@ -99,7 +99,7 @@ export default function SnackAnalyzer() {
                 </CardContent>
             </Card>
 
-            {snackResult && !snackResult.error ? (
+            {snackResult && !snackResult.error && snackResult.area ? (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-in fade-in-0 zoom-in-95 duration-500">
                   <CardHeader>
                       <CardTitle className="font-headline">Analysis Results</CardTitle>
