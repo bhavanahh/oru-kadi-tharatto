@@ -20,7 +20,15 @@ export interface Snack {
   imageData: string;
 }
 
-export type SnackAnalysisResult = (SnackDimensionsOutput & { area: number | null; commentary: string | null; isNewRecord: boolean; latestSnack: Snack | null; error: string | null });
+export type SnackAnalysisResult = (SnackDimensionsOutput & { 
+    area: number | null; 
+    commentary: string | null; 
+    isNewRecord: boolean; 
+    latestSnack: Snack | null; 
+    error: string | null;
+    parippuvadaWinner: Snack | null;
+    vazhaikkapamWinner: Snack | null;
+});
 
 function getLargestSnack(type: 'parippuvada' | 'vazhaikkapam'): Snack | null {
     const snacksOfType = sessionSnacks.filter(s => s.type === type);
@@ -33,6 +41,11 @@ function getLargestSnack(type: 'parippuvada' | 'vazhaikkapam'): Snack | null {
 export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promise<SnackAnalysisResult> {
   const parsedData = SnackImageSchema.safeParse(data);
 
+  const getWinners = () => ({
+      parippuvadaWinner: getLargestSnack('parippuvada'),
+      vazhaikkapamWinner: getLargestSnack('vazhaikkapam'),
+  });
+
   const errorResult = {
       snackType: 'unknown' as const,
       diameter: null,
@@ -43,6 +56,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
       isNewRecord: false,
       latestSnack: null,
       error: 'Invalid input provided.',
+      ...getWinners(),
   };
 
   if (!parsedData.success) {
@@ -56,6 +70,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
       return {
         ...errorResult,
         error: dimensionsResult.error || 'Aalae patttikunno? he?',
+        ...getWinners(),
       };
     }
     
@@ -63,6 +78,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
     if (dimensionsResult.snackType === 'parippuvada' && dimensionsResult.diameter && dimensionsResult.diameter > 0) {
         area = Math.PI * (dimensionsResult.diameter / 2) ** 2;
     } else if (dimensionsResult.snackType === 'vazhaikkapam' && dimensionsResult.length && dimensionsResult.length > 0 && dimensionsResult.width && dimensionsResult.width > 0) {
+        // Approximate area of an ellipse
         area = Math.PI * (dimensionsResult.length / 2) * (dimensionsResult.width / 2);
     }
     
@@ -70,17 +86,18 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
         return {
             ...errorResult,
             ...dimensionsResult,
-            error: "Could not calculate area due to missing or invalid dimensions."
+            error: "Could not calculate area due to missing or invalid dimensions.",
+            ...getWinners(),
         }
     }
 
-    const largestSnack = getLargestSnack(dimensionsResult.snackType);
-    const isNewRecord = !largestSnack || area > largestSnack.area;
+    const largestSnackBefore = getLargestSnack(dimensionsResult.snackType);
+    const isNewRecord = !largestSnackBefore || area > largestSnackBefore.area;
 
     const commentaryInput: SnackCommentaryInput = {
       snackType: dimensionsResult.snackType,
       newSnackArea: area,
-      largestSnackArea: largestSnack?.area ?? 0,
+      largestSnackArea: largestSnackBefore?.area ?? 0,
     };
 
     const commentaryResult = await getSnackCommentary(commentaryInput);
@@ -100,6 +117,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
       isNewRecord,
       latestSnack: newSnack,
       error: null,
+      ...getWinners(),
     };
 
   } catch (error) {
@@ -116,6 +134,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
     return {
       ...errorResult,
       error: `Could not analyze snack image at this time: ${errorMessage}`,
+      ...getWinners(),
     };
   }
 }

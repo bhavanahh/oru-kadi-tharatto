@@ -10,10 +10,13 @@ import CameraUpload from './camera-upload';
 import { UtensilsCrossed, MessageSquareQuote } from 'lucide-react';
 import Image from 'next/image';
 import WinnerDialog from './winner-dialog';
+import CurrentWinners from './current-winners';
 
 export default function SnackAnalyzer() {
   const [snackResult, setSnackResult] = useState<SnackAnalysisResult | null>(null);
   const [showWinner, setShowWinner] = useState(false);
+  const [winners, setWinners] = useState<{parippuvada: Snack | null, vazhaikkapam: Snack | null}>({parippuvada: null, vazhaikkapam: null});
+
   const { toast } = useToast();
   
   const handleAnalysisComplete = (result: SnackAnalysisResult) => {
@@ -24,14 +27,17 @@ export default function SnackAnalyzer() {
         description: result.error || 'Could not analyze snack.',
       });
       setSnackResult(null);
-      return;
+    } else {
+      setSnackResult(result);
+      if (result.isNewRecord) {
+          setShowWinner(true);
+      }
     }
-    
-    setSnackResult(result);
-    
-    if (result.isNewRecord) {
-        setShowWinner(true);
-    }
+
+    setWinners({
+        parippuvada: result.parippuvadaWinner,
+        vazhaikkapam: result.vazhaikkapamWinner,
+    });
   };
   
   return (
@@ -43,7 +49,7 @@ export default function SnackAnalyzer() {
             snack={snackResult.latestSnack}
         />
     )}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
         <div className="lg:col-span-1 space-y-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
@@ -56,7 +62,7 @@ export default function SnackAnalyzer() {
             </Card>
         </div>
 
-        <div className="lg:col-span-1 space-y-8">
+        <div className="lg:col-span-2 space-y-8">
             {snackResult && !snackResult.error && snackResult.area ? (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-in fade-in-0 zoom-in-95 duration-500">
                   <CardHeader>
@@ -132,6 +138,8 @@ export default function SnackAnalyzer() {
                     </CardContent>
                 </Card>
             )}
+
+            <CurrentWinners parippuvada={winners.parippuvada} vazhaikkapam={winners.vazhaikkapam} />
         </div>
     </div>
     </>
