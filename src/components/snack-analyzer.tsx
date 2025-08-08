@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
@@ -102,7 +101,7 @@ export default function SnackAnalyzer() {
     const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
     const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
 
-    setChartData([
+    setChartData([ 
         { snack: 'Parippuvada', area: latestParippuvada?.area ?? 0, fill: 'var(--color-parippuvada)' },
         { snack: 'Vazhaikkapam', area: latestVazhaikkapam?.area ?? 0, fill: 'var(--color-vazhaikkapam)' },
     ]);

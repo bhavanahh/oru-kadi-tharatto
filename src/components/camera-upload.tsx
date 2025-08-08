@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRef, useState, useEffect, useTransition } from 'react';
@@ -81,7 +80,10 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
 
     startProcessing(async () => {
       setAnalysisError(null);
+      console.log("Received image for analysis, length:", imageData.length);
+
       const result = await getDimensionsFromImage({ imageData });
+      console.log("Analysis result:", result);
       
       if (result.error || result.snackType === 'unknown') {
         const errorMessage = result.error || "Ee snack manassilayilla. Vere onnu tharumo?";
@@ -110,7 +112,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
       reader.readAsDataURL(file);
     }
   };
-  
+
   const copyToClipboard = () => {
     if (analysisError) {
         navigator.clipboard.writeText(analysisError).then(() => {
@@ -137,7 +139,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
             {capturedImage && !isProcessing ? (
                 <img src={capturedImage} alt="Captured snack" className="w-auto h-auto max-h-[400px] max-w-full rounded-lg object-contain" />
             ) : (
-                <video ref={videoRef} className="w-full h-full object-cover rounded-lg" autoPlay muted playsInline />
+                <video ref={videoRef} className="w-full h-auto object-cover rounded-lg" autoPlay muted playsInline />
             )}
             <canvas ref={canvasRef} className="hidden" />
 
