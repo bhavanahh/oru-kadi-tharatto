@@ -48,7 +48,7 @@ export default function SnackAnalyzer() {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [leaderboard, setLeaderboard] = useState<SnackData[]>(initialLeaderboard);
-  const [chartData, setChartData] = useState<{ snack: string; area: number | null; fill: string; }[]>([]);
+  const [chartData, setChartData] = useState<{ snack: string; area: number; fill: string; }[]>([]);
 
   const updateLeaderboard = (snackName: string, area: number, type: 'parippuvada' | 'vazhaikkapam') => {
     const newSnack: SnackData = { name: snackName, area, type };
