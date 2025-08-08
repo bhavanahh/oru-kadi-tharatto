@@ -18,7 +18,6 @@ export default function Leaderboard() {
           <Trophy className="w-8 h-8 text-primary" />
           <div>
             <CardTitle className="font-headline">Snack Hall of Fame</CardTitle>
-            <CardDescription>Top 5 snacks by surface area</CardDescription>
           </div>
         </div>
       </CardHeader>
