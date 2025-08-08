@@ -3,7 +3,7 @@
 
 import { getSnackCommentary, type SnackCommentaryInput } from '@/ai/flows/snack-commentary';
 import { getSnackDimensions, type SnackDimensionsInput, type SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
-import { getLargestSnack, saveSnack, type Snack } from '@/services/snack-service';
+import { getLargestSnack, saveSnack, type Snack, getTopSnacks } from '@/services/snack-service';
 import { z } from 'zod';
 
 const SnackImageSchema = z.object({
@@ -46,7 +46,7 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
         area = Math.PI * (dimensionsResult.length / 2) * (dimensionsResult.width / 2);
     }
     
-    if (area === null) {
+    if (area === null || area <= 0) {
         return {
             ...dimensionsResult,
             area: null,
@@ -66,6 +66,7 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
 
     const newSnack: Omit<Snack, 'id'> = {
         type: dimensionsResult.snackType,
+        name: `Your ${dimensionsResult.snackType}`,
         area: area,
         createdAt: new Date(),
     };
@@ -91,4 +92,16 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
       error: `Could not analyze snack image at this time: ${errorMessage}`,
     };
   }
+}
+
+export async function getLeaderboardData() {
+    try {
+        const parippuvadas = await getTopSnacks('parippuvada', 5);
+        const vazhaikkapams = await getTopSnacks('vazhaikkapam', 5);
+        const leaderboard = [...parippuvadas, ...vazhaikkapams].sort((a,b) => b.area - a.area).slice(0,5);
+        return { leaderboard };
+    } catch(error) {
+        console.error("Error fetching leaderboard data:", error);
+        return { leaderboard: [] };
+    }
 }
