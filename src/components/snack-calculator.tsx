@@ -95,17 +95,17 @@ export default function SnackCalculator() {
       if (result.reason.includes('Could not determine')) {
         toast({
           variant: "destructive",
-          title: "Uh oh! AI is taking a break.",
-          description: "Couldn't check your snack-pertise. Please try again.",
+          title: "Ayyo! AI pani tharanu.",
+          description: "Snack expert aano ennu nokkaan pattiyilla. Kurachu kazhinju try cheyyu.",
         });
       }
       setExpertBadge(result);
     });
 
     if (activeTab === 'parippuvada') {
-      updateLeaderboard('Your Parippuvada', area, 'parippuvada');
+      updateLeaderboard('Nammude Parippuvada', area, 'parippuvada');
     } else if (activeTab === 'vazhaikkapam') {
-      updateLeaderboard('Your Vazhaikkapam', area, 'vazhaikkapam');
+      updateLeaderboard('Nammude Vazhaikkapam', area, 'vazhaikkapam');
     }
   };
   
@@ -155,8 +155,8 @@ export default function SnackCalculator() {
     <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline">Snack-o-Mator</CardTitle>
-          <CardDescription>Enter your snack's dimensions to calculate its surface area.</CardDescription>
+          <CardTitle className="font-headline">Snack Alavumaash</CardTitle>
+          <CardDescription>Snackinte alavukal koduthu area kandu pidikkam.</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -240,8 +240,8 @@ export default function SnackCalculator() {
       </Card>
        <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-headline">Snack Showdown</CardTitle>
-          <CardDescription>A visual comparison of your snacks.</CardDescription>
+          <CardTitle className="font-headline">Snack Porattam</CardTitle>
+          <CardDescription>Ningade snackukal thammil oru cheriya malsaram.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={chartConfig} className="h-[250px] w-full">

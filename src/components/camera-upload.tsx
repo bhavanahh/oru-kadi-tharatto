@@ -84,8 +84,8 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
       } else if (result.snackType === 'unknown') {
          toast({
           variant: 'destructive',
-          title: 'Snack Not Recognized',
-          description: "We couldn't identify the snack. Please try another image.",
+          title: 'Snack Kandilla',
+          description: "Ee snack manassilayilla. Vere onnu tharumo?",
         });
       }
       else {
@@ -96,8 +96,8 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
             width: result.width,
         });
         toast({
-          title: `It's a ${result.snackType}!`,
-          description: "We've updated the measurements for your snack.",
+          title: `Ithu ${result.snackType} aanu!`,
+          description: "Alavukal update cheythittundu.",
         });
       }
       setCapturedImage(null); // Return to camera view after analysis
@@ -126,7 +126,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
         {capturedImage ? (
         <img src={capturedImage} alt="Captured snack" className="max-h-[50vh] w-auto h-auto rounded-lg" />
         ) : (
-        <video ref={videoRef} className="max-h-[50vh] w-auto h-auto rounded-lg" autoPlay muted playsInline />
+        <video ref={videoRef} className="w-full h-auto rounded-lg" autoPlay muted playsInline />
         )}
         <canvas ref={canvasRef} className="hidden" />
       </div>
