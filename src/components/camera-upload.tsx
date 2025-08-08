@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useState, useEffect, useTransition } from 'react';
@@ -144,7 +145,7 @@ export default function CameraUpload({ onAnalysisComplete }: CameraUploadProps) 
                  <Image
                     src={imagePreview}
                     alt="Snack preview"
-                    layout="fill"
+                    fill
                     objectFit="contain"
                     className="z-10"
                 />

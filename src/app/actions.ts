@@ -81,7 +81,15 @@ export async function analyzeAndStoreSnack(data: SnackDimensionsInput): Promise<
 
   } catch (error) {
     console.error('Error in GenAI flow for image analysis:', error);
-    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+        if (error.message.includes("429")) {
+            errorMessage = "Nammade quota theernnu! We've hit our daily analysis limit. Please try again tomorrow. Full error: " + error.message;
+        } else {
+            errorMessage = error.message;
+        }
+    }
+    
     return {
       snackType: 'unknown',
       diameter: null,
