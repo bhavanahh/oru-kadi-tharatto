@@ -41,6 +41,9 @@ const initialLeaderboard: SnackData[] = [
 interface SnackResult {
     type: 'parippuvada' | 'vazhaikkapam';
     area: number;
+    diameter?: number | null;
+    length?: number | null;
+    width?: number | null;
 }
 
 export default function SnackAnalyzer() {
@@ -81,20 +84,21 @@ export default function SnackAnalyzer() {
   const handleDimensionsUpdate = (dimensions: SnackDimensionsOutput) => {
     let area = 0;
     let snackType: 'parippuvada' | 'vazhaikkapam' | null = null;
+    let result: SnackResult | null = null;
 
     if (dimensions.snackType === 'parippuvada' && dimensions.diameter && dimensions.diameter > 0) {
         area = Math.PI * (dimensions.diameter / 2) * (dimensions.diameter / 2);
         snackType = 'parippuvada';
+        result = { type: snackType, area, diameter: dimensions.diameter };
     } else if (dimensions.snackType === 'vazhaikkapam' && dimensions.length && dimensions.width && dimensions.length > 0 && dimensions.width > 0) {
         area = Math.PI * (dimensions.length / 2) * (dimensions.width / 2);
         snackType = 'vazhaikkapam';
+        result = { type: snackType, area, length: dimensions.length, width: dimensions.width };
     }
 
+    setSnackResult(result);
     if (snackType && area > 0) {
-        setSnackResult({ type: snackType, area });
         handleAreaCheck(area, snackType);
-    } else {
-        setSnackResult(null);
     }
   };
   
@@ -131,9 +135,27 @@ export default function SnackAnalyzer() {
                                     <VazhaikkapamIcon className="h-16 w-16 mx-auto text-accent" />
                                 }
                                 <p className="text-lg">Ithu oru <span className="font-bold capitalize text-primary">{snackResult.type}</span> aanu!</p>
-                                <p className="text-sm text-muted-foreground">Surface Area</p>
-                                <p className="text-4xl font-bold font-mono text-primary">{snackResult.area.toFixed(1)} cm²</p>
-                                <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center" />
+                                
+                                <div>
+                                    <p className="text-sm text-muted-foreground">Surface Area</p>
+                                    <p className="text-4xl font-bold font-mono text-primary">{snackResult.area.toFixed(1)} cm²</p>
+                                </div>
+                                
+                                <div className="text-sm text-muted-foreground border-t border-border pt-3">
+                                    {snackResult.type === 'parippuvada' && snackResult.diameter && (
+                                        <div>
+                                            <p>Perimeter: <span className="font-mono font-medium text-foreground">{(Math.PI * snackResult.diameter).toFixed(1)} cm</span></p>
+                                        </div>
+                                    )}
+                                    {snackResult.type === 'vazhaikkapam' && snackResult.length && snackResult.width && (
+                                        <div className="flex justify-center gap-4">
+                                            <p>Length: <span className="font-mono font-medium text-foreground">{snackResult.length.toFixed(1)} cm</span></p>
+                                            <p>Width: <span className="font-mono font-medium text-foreground">{snackResult.width.toFixed(1)} cm</span></p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <SnackExpertBadge isLoading={isPending} badgeData={expertBadge} className="justify-center pt-2" />
                             </div>
                         ) : (
                             <div className="bg-muted rounded-lg p-6 text-center space-y-3 flex flex-col items-center justify-center min-h-[250px]">
@@ -204,4 +226,3 @@ export default function SnackAnalyzer() {
     </div>
   );
 }
-
