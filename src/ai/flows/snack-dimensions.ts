@@ -43,16 +43,20 @@ const snackDimensionsPrompt = ai.definePrompt({
   output: {schema: SnackDimensionsOutputSchema},
   prompt: `You are a snack geometry expert. Analyze the provided image to identify the snack and measure its dimensions.
 
-  The snack can only be one of two types: 'parippuvada' (a circular lentil fritter) or 'vazhaikkapam' (an elliptical banana fritter).
+The snack can only be one of two types: 'parippuvada' (a circular lentil fritter) or 'vazhaikkapam' (an elliptical banana fritter).
 
-  Based on the image, determine the snack type.
-  - If it's a 'parippuvada', measure its diameter in centimeters. The length, width, and inclination fields must be null.
-  - If it's a 'vazhaikkapam', measure its length and width in centimeters. Also measure its inclination, which is the angle of its longest axis relative to the horizontal, in degrees (from -90 to 90). The diameter field must be null.
-  - If the image does not contain either of these snacks, set the snackType to 'unknown' and all dimension fields to null.
+Based on the image, determine the snack type.
+- If it's a 'parippuvada', measure its diameter in centimeters. The length, width, and inclination fields must be null.
+- If it's a 'vazhaikkapam':
+  - 'length' is the longest straight-line distance from one end to the other.
+  - 'width' is the widest point measured perpendicular to the length.
+  - 'inclination' is the angle of its longest axis (the length) relative to the horizontal, in degrees (from -90 to 90).
+  - The diameter field must be null.
+- If the image does not contain either of these snacks, set the snackType to 'unknown' and all dimension fields to null.
 
-  Assume a standard-sized plate or background to estimate real-world dimensions. A typical parippuvada is about 8-13 cm in diameter. A typical vazhaikkapam is 10-16 cm long and 5-9 cm wide.
+Assume a standard-sized plate or background to estimate real-world dimensions. A typical parippuvada is about 8-13 cm in diameter. A typical vazhaikkapam is 10-16 cm long and 5-9 cm wide.
 
-  Image of the snack: {{media url=imageData}}`,
+Image of the snack: {{media url=imageData}}`,
 });
 
 
