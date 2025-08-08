@@ -22,6 +22,27 @@ const rankColors = [
 ];
 
 export default function Leaderboard({ snacks }: LeaderboardProps) {
+  if (snacks.length === 0) {
+    return (
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <Crown className="w-8 h-8 text-primary" />
+            <div>
+              <CardTitle className="font-headline text-primary">Snack Hall of Fame</CardTitle>
+              <CardDescription>Vellethinte rajakkal!</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground py-8">
+            <p>No snacks on the leaderboard yet. Analyze one to get started!</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
@@ -56,7 +77,7 @@ export default function Leaderboard({ snacks }: LeaderboardProps) {
                             <ParippuvadaIcon className="h-6 w-6 text-primary/80" /> : 
                             <VazhaikkapamIcon className="h-6 w-6 text-accent/80" />
                         }
-                        <span className="font-body">{snack.name}</span>
+                        <span className="font-body capitalize">{snack.name}</span>
                     </div>
                 </TableCell>
                 <TableCell className="text-right font-mono text-lg">{snack.area.toFixed(1)}</TableCell>

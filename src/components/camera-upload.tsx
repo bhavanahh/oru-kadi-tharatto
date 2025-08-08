@@ -8,9 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, FileUp, Copy } from 'lucide-react';
 import { getDimensionsFromImage } from '@/app/actions';
 import { Card, CardContent } from './ui/card';
+import type { SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
+
 
 interface CameraUploadProps {
-    onDimensionsCalculated: (dimensions: { snackType: 'parippuvada' | 'vazhaikkapam' | 'unknown', diameter?: number | null; length?: number | null; width?: number | null }) => void;
+    onDimensionsCalculated: (dimensions: SnackDimensionsOutput) => void;
 }
 
 export default function CameraUpload({ onDimensionsCalculated }: CameraUploadProps) {
@@ -69,27 +71,23 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
         const dataUrl = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUrl);
         setAnalysisError(null);
+        handleAnalyze(dataUrl);
       }
     }
   };
 
-  const handleAnalyze = () => {
-    if (!capturedImage) return;
+  const handleAnalyze = (imageData: string) => {
+    if (!imageData) return;
 
     startProcessing(async () => {
       setAnalysisError(null);
-      const result = await getDimensionsFromImage({ imageData: capturedImage });
+      const result = await getDimensionsFromImage({ imageData });
       
       if (result.error || result.snackType === 'unknown') {
         const errorMessage = result.error || "Ee snack manassilayilla. Vere onnu tharumo?";
         setAnalysisError(errorMessage);
       } else {
-        onDimensionsCalculated({
-            snackType: result.snackType,
-            diameter: result.diameter,
-            length: result.length,
-            width: result.width,
-        });
+        onDimensionsCalculated(result);
         toast({
           title: `Ithu ${result.snackType} aanu!`,
           description: "Alavukal update cheythittundu.",
@@ -104,8 +102,10 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setCapturedImage(e.target?.result as string);
+        const imageData = e.target?.result as string;
+        setCapturedImage(imageData);
         setAnalysisError(null);
+        handleAnalyze(imageData);
       };
       reader.readAsDataURL(file);
     }
@@ -123,70 +123,65 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
   }
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardContent className="p-4">
-            <div className="space-y-4">
-            <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center">
-                {capturedImage ? (
+    <div className="space-y-4">
+        <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center">
+            {isProcessing && (
+                 <div className="absolute inset-0 flex items-center justify-center bg-muted/80 z-10">
+                    <div className="text-center p-4 bg-background/80 rounded-lg shadow-lg">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+                        <p className="mt-2 text-muted-foreground">Analyzing snack...</p>
+                    </div>
+                </div>
+            )}
+            
+            {capturedImage && !isProcessing ? (
                 <img src={capturedImage} alt="Captured snack" className="w-auto h-auto max-h-[400px] max-w-full rounded-lg object-contain" />
-                ) : (
-                <video ref={videoRef} className="w-full h-full object-cover rounded-lg" autoPlay muted playsInline />
-                )}
-                <canvas ref={canvasRef} className="hidden" />
-                 {hasCameraPermission === null && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-muted/80">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                )}
-            </div>
-
-            {hasCameraPermission === false && !capturedImage && (
-                <Alert variant="destructive">
-                    <AlertTitle>Camera Access Required</AlertTitle>
-                    <AlertDescription>
-                        Please allow camera access to use this feature or upload a file.
-                    </AlertDescription>
-                </Alert>
-            )}
-
-            {analysisError && (
-                 <Alert variant="destructive">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <AlertTitle>Analysis Failed</AlertTitle>
-                            <AlertDescription>
-                                {analysisError}
-                            </AlertDescription>
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={copyToClipboard}>
-                            <Copy className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </Alert>
-            )}
-
-            {capturedImage ? (
-                <div className="flex gap-2">
-                    <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full bg-accent hover:bg-accent/90">
-                    {isProcessing ? <Loader2 className="animate-spin" /> : 'Analyze Snack'}
-                    </Button>
-                    <Button onClick={() => setCapturedImage(null)} variant="outline">
-                    Retake
-                    </Button>
-                </div>
             ) : (
-                <div className="grid grid-cols-2 gap-4">
-                    <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission !== true}>
-                        <Camera className="mr-2" /> Capture
-                    </Button>
-                    <Button onClick={() => fileInputRef.current?.click()} variant="outline">
-                        <FileUp className="mr-2" /> Upload File
-                    </Button>
-                    <input type="file" ref={fileInputRef} id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                <video ref={videoRef} className="w-full h-full object-cover rounded-lg" autoPlay muted playsInline />
+            )}
+            <canvas ref={canvasRef} className="hidden" />
+
+            {hasCameraPermission === null && (
+                <div className="absolute inset-0 flex items-center justify-center bg-muted/80">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
             )}
-            </div>
-        </CardContent>
-    </Card>
+        </div>
+
+        {hasCameraPermission === false && (
+            <Alert variant="default">
+                <AlertTitle>Camera Not Available</AlertTitle>
+                <AlertDescription>
+                    You can still upload a file to analyze a snack.
+                </AlertDescription>
+            </Alert>
+        )}
+
+        {analysisError && (
+             <Alert variant="destructive">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <AlertTitle>Analysis Failed</AlertTitle>
+                        <AlertDescription>
+                            {analysisError}
+                        </AlertDescription>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                        <Copy className="h-4 w-4" />
+                    </Button>
+                </div>
+            </Alert>
+        )}
+
+        <div className="grid grid-cols-2 gap-4">
+            <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission !== true || isProcessing}>
+                <Camera className="mr-2" /> Capture
+            </Button>
+            <Button onClick={() => fileInputRef.current?.click()} variant="outline" disabled={isProcessing}>
+                <FileUp className="mr-2" /> Upload File
+            </Button>
+            <input type="file" ref={fileInputRef} id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
+        </div>
+    </div>
   );
 }
