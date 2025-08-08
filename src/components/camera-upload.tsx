@@ -7,10 +7,9 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Loader2, Upload } from 'lucide-react';
 import { getDimensionsFromImage } from '@/app/actions';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 interface CameraUploadProps {
-    onDimensionsCalculated: (dimensions: { diameter?: number | null; length?: number | null; width?: number | null }) => void;
+    onDimensionsCalculated: (dimensions: { snackType: 'parippuvada' | 'vazhaikkapam' | 'unknown', diameter?: number | null; length?: number | null; width?: number | null }) => void;
 }
 
 export default function CameraUpload({ onDimensionsCalculated }: CameraUploadProps) {
@@ -19,7 +18,6 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isProcessing, startProcessing] = useTransition();
-  const [snackType, setSnackType] = useState<'parippuvada' | 'vazhaikkapam'>('parippuvada');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,7 +73,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
     if (!capturedImage) return;
 
     startProcessing(async () => {
-      const result = await getDimensionsFromImage({ imageData: capturedImage, snackType });
+      const result = await getDimensionsFromImage({ imageData: capturedImage });
       
       if (result.error) {
         toast({
@@ -83,14 +81,22 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
           title: 'Analysis Failed',
           description: result.error,
         });
-      } else {
+      } else if (result.snackType === 'unknown') {
+         toast({
+          variant: 'destructive',
+          title: 'Snack Not Recognized',
+          description: "We couldn't identify the snack. Please try another image.",
+        });
+      }
+      else {
         onDimensionsCalculated({
+            snackType: result.snackType,
             diameter: result.diameter,
             length: result.length,
             width: result.width,
         });
         toast({
-          title: 'Analysis Complete!',
+          title: `It's a ${result.snackType}!`,
           description: "We've updated the measurements for your snack.",
         });
       }
@@ -114,66 +120,46 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
     return <div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
   }
   
-  if (hasCameraPermission === false) {
-    return (
-      <Alert variant="destructive">
-        <AlertTitle>Camera Access Required</AlertTitle>
-        <AlertDescription>
-          Please allow camera access in your browser to use this feature. You can still upload a file.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <div className="space-y-4">
+      <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+        {capturedImage ? (
+        <img src={capturedImage} alt="Captured snack" className="h-full w-full object-cover" />
+        ) : (
+        <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
+        )}
+        <canvas ref={canvasRef} className="hidden" />
+      </div>
+
+      {hasCameraPermission === false && !capturedImage && (
+          <Alert variant="destructive">
+              <AlertTitle>Camera Access Required</AlertTitle>
+              <AlertDescription>
+                  Please allow camera access to use this feature or upload a file.
+              </AlertDescription>
+          </Alert>
+      )}
+
+      {capturedImage ? (
+        <div className="flex gap-2">
+            <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full">
+            {isProcessing ? <Loader2 className="animate-spin" /> : 'Analyze Snack'}
+            </Button>
+            <Button onClick={() => setCapturedImage(null)} variant="outline">
+            Retake
+            </Button>
+        </div>
+      ) : (
         <div className="grid grid-cols-2 gap-4">
-             <Button onClick={() => document.getElementById('file-upload')?.click()}>
+            <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission === false}>
+                <Camera className="mr-2" /> Capture
+            </Button>
+             <Button onClick={() => document.getElementById('file-upload')?.click()} variant="outline">
                 <Upload className="mr-2" /> Upload File
             </Button>
             <input type="file" id="file-upload" accept="image/*" className="hidden" onChange={handleFileUpload} />
         </div>
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
-            {capturedImage ? (
-            <img src={capturedImage} alt="Captured snack" className="h-full w-full object-cover" />
-            ) : (
-            <video ref={videoRef} className="h-full w-full object-cover" autoPlay muted playsInline />
-            )}
-            <canvas ref={canvasRef} className="hidden" />
-        </div>
-
-        {hasCameraPermission === false && !capturedImage && (
-            <Alert variant="destructive">
-                <AlertTitle>Camera Access Required</AlertTitle>
-                <AlertDescription>
-                    Please allow camera access to use this feature or upload a file.
-                </AlertDescription>
-            </Alert>
-        )}
-
-        {capturedImage ? (
-            <div className="space-y-4">
-            <Tabs value={snackType} onValueChange={(value) => setSnackType(value as 'parippuvada' | 'vazhaikkapam')}>
-                <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="parippuvada">Parippuvada</TabsTrigger>
-                <TabsTrigger value="vazhaikkapam">Vazhaikkapam</TabsTrigger>
-                </TabsList>
-            </Tabs>
-
-            <div className="flex gap-2">
-                <Button onClick={handleAnalyze} disabled={isProcessing} className="w-full">
-                {isProcessing ? <Loader2 className="animate-spin" /> : 'Analyze Snack'}
-                </Button>
-                <Button onClick={() => setCapturedImage(null)} variant="outline">
-                Retake
-                </Button>
-            </div>
-            </div>
-        ) : (
-            <Button onClick={captureImage} className="w-full" disabled={hasCameraPermission === false}>
-                <Camera className="mr-2" /> Capture
-            </Button>
-        )}
+      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import SnackExpertBadge from './snack-expert-badge';
 import { useToast } from '@/hooks/use-toast';
 import { ChartConfig, ChartContainer } from './ui/chart';
 import CameraUpload from './camera-upload';
+import type { SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
 
 const parippuvadaSchema = z.object({
   diameter: z.coerce.number().min(1, 'Must be > 0').max(100, 'Must be < 100'),
@@ -84,16 +85,18 @@ export default function SnackCalculator() {
     });
   };
   
-  const activeSnackType = activeTab === 'camera-upload' ? 'parippuvada' : activeTab;
+  const activeSnackType = activeTab;
 
 
-  const handleDimensionsUpdate = (dimensions: {diameter?: number | null, length?: number | null, width?: number | null}) => {
-    if (dimensions.diameter) {
+  const handleDimensionsUpdate = (dimensions: SnackDimensionsOutput) => {
+    if (dimensions.snackType === 'parippuvada' && dimensions.diameter) {
       parippuvadaForm.setValue('diameter', dimensions.diameter, { shouldValidate: true });
+      setActiveTab('parippuvada');
     }
-    if (dimensions.length && dimensions.width) {
+    if (dimensions.snackType === 'vazhaikkapam' && dimensions.length && dimensions.width) {
       vazhaikkapamForm.setValue('length', dimensions.length, { shouldValidate: true });
       vazhaikkapamForm.setValue('width', dimensions.width, { shouldValidate: true });
+      setActiveTab('vazhaikkapam');
     }
   };
 
@@ -107,7 +110,7 @@ export default function SnackCalculator() {
       setParippuvadaArea(area);
       if (activeSnackType === 'parippuvada') handleAreaCheck(area);
     }
-  }, [diameter, parippuvadaForm.formState.isValid]);
+  }, [diameter, parippuvadaForm.formState.isValid, activeSnackType]);
 
   useEffect(() => {
     vazhaikkapamForm.trigger(['length', 'width']);
@@ -117,7 +120,7 @@ export default function SnackCalculator() {
       setVazhaikkapamArea(area);
       if (activeSnackType === 'vazhaikkapam') handleAreaCheck(area);
     }
-  }, [length, width, vazhaikkapamForm.formState.isValid]);
+  }, [length, width, vazhaikkapamForm.formState.isValid, activeSnackType]);
   
   const chartData = [
     { snack: 'Parippuvada', area: parippuvadaArea, fill: 'var(--color-parippuvada)' },
@@ -222,7 +225,36 @@ export default function SnackCalculator() {
               <CartesianGrid vertical={false} />
               <XAxis dataKey="snack" tickLine={false} tickMargin={10} axisLine={false} />
               <YAxis />
-              <ChartTooltip />
+              <ChartTooltip
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="rounded-lg border bg-background p-2 shadow-sm">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex flex-col">
+                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              Snack
+                            </span>
+                            <span className="font-bold text-muted-foreground">
+                              {payload[0].payload.snack}
+                            </span>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[0.70rem] uppercase text-muted-foreground">
+                              Area
+                            </span>
+                            <span className="font-bold">
+                              {payload[0].value?.toFixed(1)} cm²
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  }
+
+                  return null
+                }}
+              />
               <Bar dataKey="area" radius={8} />
             </BarChart>
           </ChartContainer>

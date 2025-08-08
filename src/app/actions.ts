@@ -34,7 +34,6 @@ export async function checkSnackExpert(data: SnackExpertBadgeInput): Promise<Sna
 
 const SnackImageSchema = z.object({
   imageData: z.string(),
-  snackType: z.enum(['parippuvada', 'vazhaikkapam']),
 });
 
 export async function getDimensionsFromImage(data: SnackDimensionsInput): Promise<SnackDimensionsOutput> {
@@ -42,6 +41,7 @@ export async function getDimensionsFromImage(data: SnackDimensionsInput): Promis
 
   if (!parsedData.success) {
     return {
+      snackType: 'unknown',
       diameter: null,
       length: null,
       width: null,
@@ -55,6 +55,7 @@ export async function getDimensionsFromImage(data: SnackDimensionsInput): Promis
   } catch (error) {
     console.error('Error in GenAI flow for image analysis:', error);
     return {
+      snackType: 'unknown',
       diameter: null,
       length: null,
       width: null,
