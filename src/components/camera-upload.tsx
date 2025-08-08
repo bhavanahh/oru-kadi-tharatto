@@ -80,12 +80,10 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
       setAnalysisError(null);
       const result = await getDimensionsFromImage({ imageData: capturedImage });
       
-      if (result.error) {
-        setAnalysisError(result.error);
-      } else if (result.snackType === 'unknown') {
-        setAnalysisError("Ee snack manassilayilla. Vere onnu tharumo?");
-      }
-      else {
+      if (result.error || result.snackType === 'unknown') {
+        const errorMessage = result.error || "Ee snack manassilayilla. Vere onnu tharumo?";
+        setAnalysisError(errorMessage);
+      } else {
         onDimensionsCalculated({
             snackType: result.snackType,
             diameter: result.diameter,
@@ -130,7 +128,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
             <div className="space-y-4">
             <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center">
                 {capturedImage ? (
-                <img src={capturedImage} alt="Captured snack" className="max-h-full max-w-full w-auto h-auto rounded-lg object-contain" />
+                <img src={capturedImage} alt="Captured snack" className="w-auto h-auto max-h-[400px] max-w-full rounded-lg object-contain" />
                 ) : (
                 <video ref={videoRef} className="w-full h-full object-cover rounded-lg" autoPlay muted playsInline />
                 )}
