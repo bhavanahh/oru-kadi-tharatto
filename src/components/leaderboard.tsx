@@ -2,15 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trophy } from 'lucide-react';
 
-const leaderboardData = [
-  { rank: 1, name: 'Amma\'s Special Parippuvada', area: 153.9 },
-  { rank: 2, name: 'The Colossal Vazhaikkapam', area: 125.6 },
-  { rank: 3, name: 'Chettan\'s Crispy Parippuvada', area: 95.0 },
-  { rank: 4, name: 'Standard Tea-Stall Vada', area: 78.5 },
-  { rank: 5, name: 'Afternoon Delight Vazhaikkapam', area: 65.3 },
-];
+export interface SnackData {
+  name: string;
+  area: number;
+  type: 'parippuvada' | 'vazhaikkapam';
+}
 
-export default function Leaderboard() {
+interface LeaderboardProps {
+  snacks: SnackData[];
+}
+
+export default function Leaderboard({ snacks }: LeaderboardProps) {
   return (
     <Card className="shadow-lg animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
       <CardHeader>
@@ -18,6 +20,7 @@ export default function Leaderboard() {
           <Trophy className="w-8 h-8 text-primary" />
           <div>
             <CardTitle className="font-headline">Snack Hall of Fame</CardTitle>
+            <CardDescription>Top 5 snacks by surface area</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -31,9 +34,9 @@ export default function Leaderboard() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leaderboardData.map((snack) => (
-              <TableRow key={snack.rank}>
-                <TableCell className="font-medium">{snack.rank}</TableCell>
+            {snacks.map((snack, index) => (
+              <TableRow key={index}>
+                <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{snack.name}</TableCell>
                 <TableCell className="text-right font-mono">{snack.area.toFixed(1)}</TableCell>
               </TableRow>

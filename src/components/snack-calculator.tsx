@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ChartConfig, ChartContainer } from './ui/chart';
 import CameraUpload from './camera-upload';
 import type { SnackDimensionsOutput } from '@/ai/flows/snack-dimensions';
+import Leaderboard, { type SnackData } from './leaderboard';
 
 const parippuvadaSchema = z.object({
   diameter: z.coerce.number().min(1, 'Must be > 0').max(100, 'Must be < 100'),
@@ -46,6 +47,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const initialLeaderboard: SnackData[] = [
+  { name: 'Amma\'s Special Parippuvada', area: 153.9, type: 'parippuvada' },
+  { name: 'The Colossal Vazhaikkapam', area: 125.6, type: 'vazhaikkapam' },
+  { name: 'Chettan\'s Crispy Parippuvada', area: 95.0, type: 'parippuvada' },
+  { name: 'Standard Tea-Stall Vada', area: 78.5, type: 'parippuvada' },
+  { name: 'Afternoon Delight Vazhaikkapam', area: 65.3, type: 'vazhaikkapam' },
+];
+
 
 export default function SnackCalculator() {
   const [parippuvadaArea, setParippuvadaArea] = useState(0);
@@ -54,6 +63,7 @@ export default function SnackCalculator() {
   const [expertBadge, setExpertBadge] = useState<SnackExpertBadgeOutput | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [leaderboard, setLeaderboard] = useState<SnackData[]>(initialLeaderboard);
 
   const parippuvadaForm = useForm<ParippuvadaFormValues>({
     resolver: zodResolver(parippuvadaSchema),
@@ -70,6 +80,14 @@ export default function SnackCalculator() {
   const diameter = parippuvadaForm.watch('diameter');
   const { length, width } = vazhaikkapamForm.watch();
 
+  const updateLeaderboard = (snackName: string, area: number, type: 'parippuvada' | 'vazhaikkapam') => {
+    const newSnack: SnackData = { name: snackName, area, type };
+    const updatedLeaderboard = [...leaderboard, newSnack]
+      .sort((a, b) => b.area - a.area)
+      .slice(0, 5);
+    setLeaderboard(updatedLeaderboard);
+  };
+
   const handleAreaCheck = (area: number) => {
     startTransition(async () => {
       setExpertBadge(null);
@@ -83,6 +101,12 @@ export default function SnackCalculator() {
       }
       setExpertBadge(result);
     });
+
+    if (activeTab === 'parippuvada') {
+      updateLeaderboard('Your Parippuvada', area, 'parippuvada');
+    } else if (activeTab === 'vazhaikkapam') {
+      updateLeaderboard('Your Vazhaikkapam', area, 'vazhaikkapam');
+    }
   };
   
   const activeSnackType = activeTab;
@@ -260,6 +284,7 @@ export default function SnackCalculator() {
           </ChartContainer>
         </CardContent>
       </Card>
+      <Leaderboard snacks={leaderboard} />
     </div>
   );
 }

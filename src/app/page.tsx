@@ -7,9 +7,7 @@ export default function Home() {
       <div className="max-w-4xl mx-auto space-y-12">
         <Header />
         <div className="grid grid-cols-1 gap-12 items-start">
-          <div>
-            <SnackCalculator />
-          </div>
+          <SnackCalculator />
         </div>
       </div>
     </main>
