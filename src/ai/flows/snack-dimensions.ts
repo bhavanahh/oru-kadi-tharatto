@@ -36,6 +36,24 @@ export async function getSnackDimensions(input: SnackDimensionsInput): Promise<S
   return snackDimensionsFlow(input);
 }
 
+const snackDimensionsPrompt = ai.definePrompt({
+  name: 'snackDimensionsPrompt',
+  input: {schema: SnackDimensionsInputSchema},
+  output: {schema: SnackDimensionsOutputSchema},
+  prompt: `You are a snack geometry expert. Analyze the provided image to identify the snack and measure its dimensions.
+
+  The snack can only be one of two types: 'parippuvada' (a circular lentil fritter) or 'vazhaikkapam' (an elliptical banana fritter).
+
+  Based on the image, determine the snack type.
+  - If it's a 'parippuvada', measure its diameter in centimeters. The other dimension fields should be null.
+  - If it's a 'vazhaikkapam', measure its length and width in centimeters. The diameter field should be null.
+  - If the image does not contain either of these snacks, set the snackType to 'unknown' and all dimension fields to null.
+
+  Assume a standard-sized plate or background to estimate real-world dimensions. A typical parippuvada is about 8-13 cm in diameter. A typical vazhaikkapam is 10-16 cm long and 5-9 cm wide.
+
+  Image of the snack: {{media url=imageData}}`,
+});
+
 
 const snackDimensionsFlow = ai.defineFlow(
   {
@@ -44,29 +62,16 @@ const snackDimensionsFlow = ai.defineFlow(
     outputSchema: SnackDimensionsOutputSchema,
   },
   async (input) => {
-    // This is where you would integrate a real computer vision model.
-    // For now, we'll mock the identification and measurement.
-    
-    // Step 1: Identify the snack (mocked)
-    const identifiedSnackType = Math.random() > 0.5 ? 'parippuvada' : 'vazhaikkapam';
-
-    // Step 2: Return dimensions based on identified type
-    if (identifiedSnackType === 'parippuvada') {
+    const { output } = await snackDimensionsPrompt(input);
+    if (output === null || output === undefined) {
       return {
-        snackType: 'parippuvada',
-        diameter: Math.random() * 5 + 8, // Random diameter between 8 and 13
+        snackType: 'unknown',
+        diameter: null,
         length: null,
         width: null,
-        error: null,
-      };
-    } else { // vazhaikkapam
-      return {
-        snackType: 'vazhaikkapam',
-        diameter: null,
-        length: Math.random() * 6 + 10, // Random length between 10 and 16
-        width: Math.random() * 4 + 5,   // Random width between 5 and 9
-        error: null,
+        error: 'Could not analyze image.',
       };
     }
+    return output;
   }
 );
