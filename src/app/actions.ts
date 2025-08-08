@@ -20,7 +20,7 @@ export interface Snack {
   imageData: string;
 }
 
-export type SnackAnalysisResult = (SnackDimensionsOutput & { area: number | null; commentary: string | null; leaderboard: Snack[] });
+export type SnackAnalysisResult = (SnackDimensionsOutput & { area: number | null; commentary: string | null; isNewRecord: boolean; latestSnack: Snack | null; error: string | null });
 
 function getLargestSnack(type: 'parippuvada' | 'vazhaikkapam'): Snack | null {
     const snacksOfType = sessionSnacks.filter(s => s.type === type);
@@ -40,12 +40,13 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
       width: null,
       area: null,
       commentary: null,
-      leaderboard: [],
+      isNewRecord: false,
+      latestSnack: null,
       error: 'Invalid input provided.',
   };
 
   if (!parsedData.success) {
-    return { ...errorResult, leaderboard: sessionSnacks };
+    return errorResult;
   }
   
   try {
@@ -53,10 +54,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
 
     if (dimensionsResult.error || !dimensionsResult.snackType || dimensionsResult.snackType === 'unknown') {
       return {
-        ...dimensionsResult,
-        area: null,
-        commentary: null,
-        leaderboard: sessionSnacks,
+        ...errorResult,
         error: dimensionsResult.error || 'Aalae patttikunno? he?',
       };
     }
@@ -70,15 +68,14 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
     
     if (area === null || area <= 0) {
         return {
+            ...errorResult,
             ...dimensionsResult,
-            area: null,
-            commentary: null,
-            leaderboard: sessionSnacks,
             error: "Could not calculate area due to missing or invalid dimensions."
         }
     }
 
     const largestSnack = getLargestSnack(dimensionsResult.snackType);
+    const isNewRecord = !largestSnack || area > largestSnack.area;
 
     const commentaryInput: SnackCommentaryInput = {
       snackType: dimensionsResult.snackType,
@@ -95,17 +92,14 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
         imageData: parsedData.data.imageData,
     }
     sessionSnacks.push(newSnack);
-    // Keep only the top 5 of each type
-    const parippuvadas = sessionSnacks.filter(s => s.type === 'parippuvada').sort((a, b) => b.area - a.area).slice(0, 5);
-    const vazhaikkapams = sessionSnacks.filter(s => s.type === 'vazhaikkapam').sort((a, b) => b.area - a.area).slice(0, 5);
-    const leaderboard = [...parippuvadas, ...vazhaikkapams].sort((a, b) => b.area - a.area);
-
 
     return {
       ...dimensionsResult,
       area,
       commentary: commentaryResult.comment,
-      leaderboard
+      isNewRecord,
+      latestSnack: newSnack,
+      error: null,
     };
 
   } catch (error) {
@@ -121,12 +115,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
     
     return {
       ...errorResult,
-      leaderboard: sessionSnacks,
       error: `Could not analyze snack image at this time: ${errorMessage}`,
     };
   }
-}
-
-export async function getLeaderboardData(): Promise<{leaderboard: Snack[]}> {
-    return { leaderboard: sessionSnacks };
 }

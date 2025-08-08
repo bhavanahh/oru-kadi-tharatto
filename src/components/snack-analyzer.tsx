@@ -1,55 +1,50 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ParippuvadaIcon, VazhaikkapamIcon } from '@/components/snack-icons';
-import { type SnackAnalysisResult, type Snack, getLeaderboardData } from '@/app/actions';
+import { type SnackAnalysisResult, type Snack } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import CameraUpload from './camera-upload';
-import { UtensilsCrossed, MessageSquareQuote, Loader2 } from 'lucide-react';
+import { UtensilsCrossed, MessageSquareQuote } from 'lucide-react';
 import Image from 'next/image';
-import Leaderboard from './leaderboard';
-import { Skeleton } from './ui/skeleton';
-
-interface SnackResult extends SnackAnalysisResult {
-    imageData: string | null;
-}
+import WinnerDialog from './winner-dialog';
 
 export default function SnackAnalyzer() {
-  const [snackResult, setSnackResult] = useState<SnackResult | null>(null);
-  const [leaderboard, setLeaderboard] = useState<Snack[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [snackResult, setSnackResult] = useState<SnackAnalysisResult | null>(null);
+  const [showWinner, setShowWinner] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    async function fetchInitialData() {
-        setIsLoading(true);
-        const { leaderboard } = await getLeaderboardData();
-        setLeaderboard(leaderboard);
-        setIsLoading(false);
-    }
-    fetchInitialData();
-  }, [])
-
+  
   const handleAnalysisComplete = (result: SnackAnalysisResult) => {
-    if (result.error) {
+    if (result.error || !result.latestSnack) {
       toast({
         variant: "destructive",
         title: "Ayyo! Oru pani kitti.",
-        description: result.error,
+        description: result.error || 'Could not analyze snack.',
       });
       setSnackResult(null);
       return;
     }
     
-    setSnackResult({ ...result, imageData: result.leaderboard.find(s => s.area === result.area)?.imageData ?? null });
-    setLeaderboard(result.leaderboard);
+    setSnackResult(result);
+    
+    if (result.isNewRecord) {
+        setShowWinner(true);
+    }
   };
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
-        <div className="lg:col-span-2 space-y-8">
+    <>
+    {snackResult?.latestSnack && (
+        <WinnerDialog 
+            isOpen={showWinner} 
+            onOpenChange={setShowWinner}
+            snack={snackResult.latestSnack}
+        />
+    )}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
+        <div className="lg:col-span-1 space-y-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
                     <CardTitle className="font-headline">Snack Analyzer</CardTitle>
@@ -59,7 +54,9 @@ export default function SnackAnalyzer() {
                    <CameraUpload onAnalysisComplete={handleAnalysisComplete} />
                 </CardContent>
             </Card>
+        </div>
 
+        <div className="lg:col-span-1 space-y-8">
             {snackResult && !snackResult.error && snackResult.area ? (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-in fade-in-0 zoom-in-95 duration-500">
                   <CardHeader>
@@ -68,9 +65,9 @@ export default function SnackAnalyzer() {
                   </CardHeader>
                   <CardContent>
                       <div className="grid md:grid-cols-2 gap-6 items-center">
-                          {snackResult.imageData && (
+                          {snackResult.latestSnack?.imageData && (
                               <Image
-                                  src={snackResult.imageData}
+                                  src={snackResult.latestSnack.imageData}
                                   alt="Analyzed snack"
                                   width={400}
                                   height={400}
@@ -136,23 +133,7 @@ export default function SnackAnalyzer() {
                 </Card>
             )}
         </div>
-        <div className="lg:col-span-1 space-y-8">
-            {isLoading ? (
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-8 w-3/4" />
-                        <Skeleton className="h-4 w-1/2" />
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                        <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                </Card>
-            ) : (
-                <Leaderboard snacks={leaderboard} />
-            )}
-        </div>
     </div>
+    </>
   );
 }
