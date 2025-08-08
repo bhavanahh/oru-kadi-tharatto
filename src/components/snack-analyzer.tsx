@@ -148,7 +148,7 @@ export default function SnackAnalyzer() {
                   </CardContent>
               </Card>
             ) : (
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-in fade-in-0 zoom-in-95">
                     <CardHeader>
                         <CardTitle className="font-headline">Alക്കാൻ Kaathirikkunnu</CardTitle>
                     </CardHeader>
