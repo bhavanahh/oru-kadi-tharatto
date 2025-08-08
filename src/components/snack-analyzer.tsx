@@ -72,10 +72,10 @@ export default function SnackAnalyzer() {
     }
   };
   
-  useEffect(() => {
-    const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
-    const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
+  const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
+  const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
 
+  useEffect(() => {
     const data = [];
     if (latestParippuvada) {
         data.push({ snack: 'Parippuvada', area: latestParippuvada.area, fill: 'var(--color-parippuvada)' });
@@ -84,7 +84,7 @@ export default function SnackAnalyzer() {
         data.push({ snack: 'Vazhaikkapam', area: latestVazhaikkapam.area, fill: 'var(--color-vazhaikkapam)' });
     }
     setChartData(data);
-  }, [leaderboard]);
+  }, [latestParippuvada, latestVazhaikkapam]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
@@ -130,12 +130,12 @@ export default function SnackAnalyzer() {
                               </div>
                               
                               <div className="text-sm text-muted-foreground border-t border-border pt-3">
-                                  {snackResult.snackType === 'parippuvada' && snackResult.diameter && (
+                                  {snackResult.snackType === 'parippuvada' && snackResult.diameter && snackResult.diameter > 0 && (
                                       <div>
                                           <p>Perimeter: <span className="font-mono font-medium text-foreground">{(Math.PI * snackResult.diameter).toFixed(1)} cm</span></p>
                                       </div>
                                   )}
-                                  {snackResult.snackType === 'vazhaikkapam' && snackResult.length && snackResult.width && (
+                                  {snackResult.snackType === 'vazhaikkapam' && snackResult.length && snackResult.length > 0 && snackResult.width && snackResult.width > 0 && (
                                       <div className="flex justify-center gap-4">
                                           <p>Length: <span className="font-mono font-medium text-foreground">{snackResult.length.toFixed(1)} cm</span></p>
                                           <p>Width: <span className="font-mono font-medium text-foreground">{snackResult.width.toFixed(1)} cm</span></p>
