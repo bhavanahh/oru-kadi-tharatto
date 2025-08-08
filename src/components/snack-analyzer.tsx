@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
@@ -81,10 +82,10 @@ export default function SnackAnalyzer() {
     let area = 0;
     let snackType: 'parippuvada' | 'vazhaikkapam' | null = null;
 
-    if (dimensions.snackType === 'parippuvada' && dimensions.diameter) {
+    if (dimensions.snackType === 'parippuvada' && dimensions.diameter && dimensions.diameter > 0) {
         area = Math.PI * (dimensions.diameter / 2) * (dimensions.diameter / 2);
         snackType = 'parippuvada';
-    } else if (dimensions.snackType === 'vazhaikkapam' && dimensions.length && dimensions.width) {
+    } else if (dimensions.snackType === 'vazhaikkapam' && dimensions.length && dimensions.width && dimensions.length > 0 && dimensions.width > 0) {
         area = Math.PI * (dimensions.length / 2) * (dimensions.width / 2);
         snackType = 'vazhaikkapam';
     }
@@ -101,10 +102,14 @@ export default function SnackAnalyzer() {
     const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
     const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
 
-    setChartData([ 
-        { snack: 'Parippuvada', area: latestParippuvada?.area ?? 0, fill: 'var(--color-parippuvada)' },
-        { snack: 'Vazhaikkapam', area: latestVazhaikkapam?.area ?? 0, fill: 'var(--color-vazhaikkapam)' },
-    ]);
+    const data = [];
+    if (latestParippuvada) {
+        data.push({ snack: 'Parippuvada', area: latestParippuvada.area, fill: 'var(--color-parippuvada)' });
+    }
+    if (latestVazhaikkapam) {
+        data.push({ snack: 'Vazhaikkapam', area: latestVazhaikkapam.area, fill: 'var(--color-vazhaikkapam)' });
+    }
+    setChartData(data);
   }, [leaderboard]);
 
   return (
@@ -176,7 +181,7 @@ export default function SnackAnalyzer() {
                                     Area
                                     </span>
                                     <span className="font-bold">
-                                    {payload[0].value?.toFixed(1)} cm²
+                                    {payload[0].value ? Number(payload[0].value).toFixed(1) : 0} cm²
                                     </span>
                                 </div>
                                 </div>
@@ -199,3 +204,4 @@ export default function SnackAnalyzer() {
     </div>
   );
 }
+
