@@ -44,8 +44,12 @@ const snackDimensionsPrompt = ai.definePrompt({
   name: 'snackDimensionsPrompt',
   input: {schema: SnackDimensionsInputSchema},
   output: {schema: SnackDimensionsOutputSchema},
-  prompt: `You are a snack geometry expert. Analyze the provided image to identify the snack and measure its dimensions.
+  prompt: `You are a snack geometry expert. Your primary goal is to analyze the provided image to identify a snack and measure its dimensions.
 
+**Important First Step:** Before any analysis, check if the image contains a human face. 
+- If you detect a human face, you MUST stop all other analysis. Set the 'snackType' to 'unknown' and the 'error' field to the exact Manglish string: "Aalalla, snack alla! Mone, ithu snack alla, oru manushyananu! LOL". Do not proceed to measure anything.
+
+If there is no human face, proceed with the snack analysis:
 The snack can only be one of three types: 'parippuvada' (a circular lentil fritter), 'vazhaikkapam' (an elliptical banana fritter), or 'samoosa' (a triangular pastry).
 
 Based on the image, determine the snack type.
@@ -85,6 +89,20 @@ const snackDimensionsFlow = ai.defineFlow(
           sideB: null,
           sideC: null,
           error: 'Could not analyze image. The model returned no output.',
+        };
+      }
+      
+      if (output.error) {
+         return {
+          snackType: 'unknown',
+          diameter: null,
+          length: null,
+          width: null,
+          inclination: null,
+          sideA: null,
+          sideB: null,
+          sideC: null,
+          error: output.error
         };
       }
 
