@@ -7,7 +7,7 @@ export default function Header() {
         Oru Kadi Tharatto!
       </h1>
       <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-        Snackinte valippam ariyaan, oru photo eduthe! 😋
+        Ede, aa palaharathinte valippam onn arinjalo? Oru photo pidippiche! 😋
       </p>
     </header>
   );

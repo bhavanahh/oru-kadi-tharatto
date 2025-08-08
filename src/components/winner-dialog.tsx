@@ -23,9 +23,9 @@ export default function WinnerDialog({ isOpen, onOpenChange, snack }: WinnerDial
                         <Crown className="w-24 h-24 text-primary animate-in fade-in zoom-in-50 duration-500" />
                         <span className="absolute text-5xl font-extrabold text-white" style={{ top: '55%', left: '50%', transform: 'translate(-50%, -50%)', textShadow: '0 2px 4px rgba(0,0,0,0.3)'}}>#1</span>
                     </div>
-                    <DialogTitle className="text-4xl font-headline text-primary mt-2">New Champion!</DialogTitle>
+                    <DialogTitle className="text-4xl font-headline text-primary mt-2">Puthiya Rajavu!</DialogTitle>
                     <DialogDescription className="text-lg text-muted-foreground">
-                        Mone, ee {snack.type} theerchaayi vishesham!
+                        Mone, ee {snack.type} theerchaayi vishesham! Vere level!
                     </DialogDescription>
                 </DialogHeader>
                 <div className="my-6 flex flex-col items-center space-y-4">
@@ -39,7 +39,7 @@ export default function WinnerDialog({ isOpen, onOpenChange, snack }: WinnerDial
                         />
                     </div>
                     <div className="text-center">
-                        <p className="text-sm text-muted-foreground">New Record Area</p>
+                        <p className="text-sm text-muted-foreground">Puthiya Record Area</p>
                         <p className="text-5xl font-bold font-mono text-primary drop-shadow-sm">{snack.area.toFixed(1)} cm²</p>
                     </div>
                 </div>

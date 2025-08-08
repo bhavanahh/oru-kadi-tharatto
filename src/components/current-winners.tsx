@@ -36,7 +36,7 @@ function WinnerDisplay({ snack, type }: { snack: Snack | null, type: 'parippuvad
         return (
             <div className="flex flex-col items-center justify-center p-4 text-center bg-muted/50 rounded-lg min-h-[180px]">
                 {renderIcon("h-12 w-12 text-muted-foreground/30")}
-                <p className="mt-2 text-sm text-muted-foreground">No {type} winner yet!</p>
+                <p className="mt-2 text-sm text-muted-foreground">Ee {type} aarum jettiyittilla!</p>
             </div>
         );
     }
@@ -73,9 +73,9 @@ export default function CurrentWinners({ parippuvada, vazhaikkapam, samoosa }: C
             <CardHeader>
                 <CardTitle className="font-headline flex items-center gap-2">
                     <Crown className="w-6 h-6 text-amber-500" />
-                    Current Champions
+                    Ippozhathe Rajaakkanmar
                 </CardTitle>
-                <CardDescription>The biggest snacks of this session.</CardDescription>
+                <CardDescription>Ee sessionile ettavum valiya kadikal.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

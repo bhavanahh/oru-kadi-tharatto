@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   title: 'ORU KADI THARATTO!',
-  description: 'Calculate the true size of your favorite Kerala snacks!',
+  description: 'Sherikkum alav edukkam nammade ishta palaharangalude!',
 };
 
 export default function RootLayout({

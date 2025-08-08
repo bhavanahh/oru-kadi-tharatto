@@ -24,7 +24,7 @@ export default function SnackAnalyzer() {
       toast({
         variant: "destructive",
         title: "Ayyo! Oru pani kitti.",
-        description: result.error || 'Could not analyze snack.',
+        description: result.error || 'Kadi alakan pattiyilla.',
       });
       setSnackResult(null);
     } else {
@@ -71,8 +71,8 @@ export default function SnackAnalyzer() {
         <div className="lg:col-span-1 space-y-8">
             <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
-                    <CardTitle className="font-headline">Snack Analyzer</CardTitle>
-                    <CardDescription>Upload or snap a picture of your snack to see how it measures up!</CardDescription>
+                    <CardTitle className="font-headline">Kadi Meter</CardTitle>
+                    <CardDescription>Oru photo eduthalo, allenkil upload cheytho, nammude kadi ethratholam undennu nokkam!</CardDescription>
                 </CardHeader>
                 <CardContent>
                    <CameraUpload onAnalysisComplete={handleAnalysisComplete} />
@@ -84,8 +84,8 @@ export default function SnackAnalyzer() {
             {snackResult && !snackResult.error && snackResult.area && snackResult.snackType !== 'unknown' ? (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 animate-in fade-in-0 zoom-in-95 duration-500">
                   <CardHeader>
-                      <CardTitle className="font-headline">Analysis Results</CardTitle>
-                      <CardDescription>Here's the lowdown on your snack.</CardDescription>
+                      <CardTitle className="font-headline">Kandupidutham</CardTitle>
+                      <CardDescription>Da, pidicho ninakkulla kadiyude report.</CardDescription>
                   </CardHeader>
                   <CardContent>
                       <div className="grid md:grid-cols-2 gap-6 items-center">
@@ -104,21 +104,21 @@ export default function SnackAnalyzer() {
                               <p className="text-lg">Ithu oru <span className={`font-bold capitalize ${getSnackColor(snackResult.snackType)}`}>{snackResult.snackType}</span> aanu!</p>
                               
                               <div>
-                                  <p className="text-sm text-muted-foreground">Surface Area</p>
+                                  <p className="text-sm text-muted-foreground">Valippam (Area)</p>
                                   <p className={`text-4xl font-bold font-mono ${getSnackColor(snackResult.snackType)}`}>{snackResult.area?.toFixed(1)} cm²</p>
                               </div>
                               
                               <div className="text-sm text-muted-foreground border-t border-border pt-3 space-y-1">
                                   {snackResult.snackType === 'parippuvada' && snackResult.diameter && snackResult.diameter > 0 && (
                                       <div>
-                                          <p>Perimeter: <span className="font-mono font-medium text-foreground">{(Math.PI * snackResult.diameter).toFixed(1)} cm</span></p>
+                                          <p>Chuttalav: <span className="font-mono font-medium text-foreground">{(Math.PI * snackResult.diameter).toFixed(1)} cm</span></p>
                                       </div>
                                   )}
                                   {snackResult.snackType === 'vazhaikkapam' && snackResult.length && snackResult.length > 0 && snackResult.width && snackResult.width > 0 && (
                                       <div className="flex justify-center gap-4">
-                                          <p>Length: <span className="font-mono font-medium text-foreground">{snackResult.length.toFixed(1)} cm</span></p>
-                                          <p>Width: <span className="font-mono font-medium text-foreground">{snackResult.width.toFixed(1)} cm</span></p>
-                                          {snackResult.inclination != null && <p>Angle: <span className="font-mono font-medium text-foreground">{snackResult.inclination.toFixed(0)}°</span></p>}
+                                          <p>Neelam: <span className="font-mono font-medium text-foreground">{snackResult.length.toFixed(1)} cm</span></p>
+                                          <p>Veethi: <span className="font-mono font-medium text-foreground">{snackResult.width.toFixed(1)} cm</span></p>
+                                          {snackResult.inclination != null && <p>Chariv: <span className="font-mono font-medium text-foreground">{snackResult.inclination.toFixed(0)}°</span></p>}
                                       </div>
                                   )}
                                   {snackResult.snackType === 'samoosa' && snackResult.sideA && snackResult.sideB && snackResult.sideC && (
@@ -150,13 +150,13 @@ export default function SnackAnalyzer() {
             ) : (
                 <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
-                        <CardTitle className="font-headline">Awaiting Analysis</CardTitle>
+                        <CardTitle className="font-headline">Alക്കാൻ Kaathirikkunnu</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="bg-muted rounded-lg p-6 text-center space-y-3 flex flex-col items-center justify-center min-h-[250px]">
                             <UtensilsCrossed className="h-16 w-16 mx-auto text-muted-foreground/50" />
-                            <p className="text-muted-foreground">Waiting for a snack...</p>
-                            <p className="text-sm text-muted-foreground/80">Your snack analysis will appear here.</p>
+                            <p className="text-muted-foreground">Oru kadi vechu thaa...</p>
+                            <p className="text-sm text-muted-foreground/80">Ninte kadiyude alav ivide varum.</p>
                         </div>
                     </CardContent>
                 </Card>
