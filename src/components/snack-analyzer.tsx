@@ -93,7 +93,7 @@ export default function SnackAnalyzer() {
                                   <p className="text-4xl font-bold font-mono text-primary">{snackResult.area?.toFixed(1)} cm²</p>
                               </div>
                               
-                              <div className="text-sm text-muted-foreground border-t border-border pt-3">
+                              <div className="text-sm text-muted-foreground border-t border-border pt-3 space-y-1">
                                   {snackResult.snackType === 'parippuvada' && snackResult.diameter && snackResult.diameter > 0 && (
                                       <div>
                                           <p>Perimeter: <span className="font-mono font-medium text-foreground">{(Math.PI * snackResult.diameter).toFixed(1)} cm</span></p>
@@ -103,6 +103,7 @@ export default function SnackAnalyzer() {
                                       <div className="flex justify-center gap-4">
                                           <p>Length: <span className="font-mono font-medium text-foreground">{snackResult.length.toFixed(1)} cm</span></p>
                                           <p>Width: <span className="font-mono font-medium text-foreground">{snackResult.width.toFixed(1)} cm</span></p>
+                                          {snackResult.inclination != null && <p>Angle: <span className="font-mono font-medium text-foreground">{snackResult.inclination.toFixed(0)}°</span></p>}
                                       </div>
                                   )}
                               </div>

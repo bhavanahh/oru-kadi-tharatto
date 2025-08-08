@@ -26,6 +26,7 @@ const SnackDimensionsOutputSchema = z.object({
   diameter: z.number().nullable().describe('The diameter of the parippuvada in cm. Null if not a parippuvada.'),
   length: z.number().nullable().describe('The length of the vazhaikkapam in cm. Null if not a vazhaikkapam.'),
   width: z.number().nullable().describe('The width of the vazhaikkapam in cm. Null if not a vazhaikkapam.'),
+  inclination: z.number().nullable().describe('The inclination angle of the vazhaikkapam in degrees, from -90 to 90. Null if not a vazhaikkapam.'),
   error: z.string().nullable().describe('Any error message if processing failed.'),
 });
 
@@ -45,8 +46,8 @@ const snackDimensionsPrompt = ai.definePrompt({
   The snack can only be one of two types: 'parippuvada' (a circular lentil fritter) or 'vazhaikkapam' (an elliptical banana fritter).
 
   Based on the image, determine the snack type.
-  - If it's a 'parippuvada', measure its diameter in centimeters. The length and width fields must be null.
-  - If it's a 'vazhaikkapam', measure its length and width in centimeters. The diameter field must be null.
+  - If it's a 'parippuvada', measure its diameter in centimeters. The length, width, and inclination fields must be null.
+  - If it's a 'vazhaikkapam', measure its length and width in centimeters. Also measure its inclination, which is the angle of its longest axis relative to the horizontal, in degrees (from -90 to 90). The diameter field must be null.
   - If the image does not contain either of these snacks, set the snackType to 'unknown' and all dimension fields to null.
 
   Assume a standard-sized plate or background to estimate real-world dimensions. A typical parippuvada is about 8-13 cm in diameter. A typical vazhaikkapam is 10-16 cm long and 5-9 cm wide.
@@ -71,6 +72,7 @@ const snackDimensionsFlow = ai.defineFlow(
           diameter: null,
           length: null,
           width: null,
+          inclination: null,
           error: 'Could not analyze image. The model returned no output.',
         };
       }
@@ -79,13 +81,17 @@ const snackDimensionsFlow = ai.defineFlow(
       if (output.snackType === 'parippuvada') {
         output.length = null;
         output.width = null;
+        output.inclination = null;
         if (!output.diameter || output.diameter <= 0) {
-            return { snackType: 'unknown', diameter: null, length: null, width: null, error: 'The model could not determine a valid diameter for the parippuvada.' };
+            return { snackType: 'unknown', diameter: null, length: null, width: null, inclination: null, error: 'The model could not determine a valid diameter for the parippuvada.' };
         }
       } else if (output.snackType === 'vazhaikkapam') {
         output.diameter = null;
         if (!output.length || output.length <= 0 || !output.width || output.width <= 0) {
-            return { snackType: 'unknown', diameter: null, length: null, width: null, error: 'The model could not determine valid dimensions for the vazhaikkapam.' };
+            return { snackType: 'unknown', diameter: null, length: null, width: null, inclination: null, error: 'The model could not determine valid dimensions for the vazhaikkapam.' };
+        }
+        if (output.inclination === null || output.inclination < -90 || output.inclination > 90) {
+            output.inclination = 0; // Default to 0 if invalid
         }
       } else {
         return {
@@ -93,6 +99,7 @@ const snackDimensionsFlow = ai.defineFlow(
             diameter: null,
             length: null,
             width: null,
+            inclination: null,
             error: output.error || 'The model could not identify the snack as a parippuvada or vazhaikkapam.',
         }
       }
@@ -109,6 +116,7 @@ const snackDimensionsFlow = ai.defineFlow(
           diameter: null,
           length: null,
           width: null,
+          inclination: null,
           error: `Could not analyze image: ${errorMessage}`,
       };
     }

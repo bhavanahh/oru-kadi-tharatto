@@ -51,6 +51,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
       diameter: null,
       length: null,
       width: null,
+      inclination: null,
       area: null,
       commentary: null,
       isNewRecord: false,
