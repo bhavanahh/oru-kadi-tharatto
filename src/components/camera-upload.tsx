@@ -5,7 +5,7 @@ import { useRef, useState, useEffect, useTransition } from 'react';
 import { Button } from './ui/button';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Loader2, Upload, FileUp } from 'lucide-react';
+import { Camera, Loader2, FileUp, Copy } from 'lucide-react';
 import { getDimensionsFromImage } from '@/app/actions';
 import { Card, CardContent } from './ui/card';
 
@@ -20,6 +20,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isProcessing, startProcessing] = useTransition();
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,6 +68,7 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
         context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
         const dataUrl = canvas.toDataURL('image/jpeg');
         setCapturedImage(dataUrl);
+        setAnalysisError(null);
       }
     }
   };
@@ -75,20 +77,13 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
     if (!capturedImage) return;
 
     startProcessing(async () => {
+      setAnalysisError(null);
       const result = await getDimensionsFromImage({ imageData: capturedImage });
       
       if (result.error) {
-        toast({
-          variant: 'destructive',
-          title: 'Analysis Failed',
-          description: result.error,
-        });
+        setAnalysisError(result.error);
       } else if (result.snackType === 'unknown') {
-         toast({
-          variant: 'destructive',
-          title: 'Snack Kandilla',
-          description: "Ee snack manassilayilla. Vere onnu tharumo?",
-        });
+        setAnalysisError("Ee snack manassilayilla. Vere onnu tharumo?");
       }
       else {
         onDimensionsCalculated({
@@ -101,8 +96,8 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
           title: `Ithu ${result.snackType} aanu!`,
           description: "Alavukal update cheythittundu.",
         });
+        setCapturedImage(null);
       }
-      setCapturedImage(null);
     });
   };
 
@@ -112,16 +107,28 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
       const reader = new FileReader();
       reader.onload = (e) => {
         setCapturedImage(e.target?.result as string);
+        setAnalysisError(null);
       };
       reader.readAsDataURL(file);
     }
   };
   
+  const copyToClipboard = () => {
+    if (analysisError) {
+        navigator.clipboard.writeText(analysisError).then(() => {
+            toast({
+                title: "Copied!",
+                description: "Error message copied to clipboard.",
+            });
+        });
+    }
+  }
+
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardContent className="p-4">
             <div className="space-y-4">
-            <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center aspect-video">
+            <div className="relative w-full overflow-hidden rounded-lg border bg-muted flex justify-center items-center">
                 {capturedImage ? (
                 <img src={capturedImage} alt="Captured snack" className="max-h-full max-w-full w-auto h-auto rounded-lg object-contain" />
                 ) : (
@@ -141,6 +148,22 @@ export default function CameraUpload({ onDimensionsCalculated }: CameraUploadPro
                     <AlertDescription>
                         Please allow camera access to use this feature or upload a file.
                     </AlertDescription>
+                </Alert>
+            )}
+
+            {analysisError && (
+                 <Alert variant="destructive">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <AlertTitle>Analysis Failed</AlertTitle>
+                            <AlertDescription>
+                                {analysisError}
+                            </AlertDescription>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={copyToClipboard}>
+                            <Copy className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </Alert>
             )}
 
