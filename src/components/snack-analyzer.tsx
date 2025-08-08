@@ -132,13 +132,13 @@ export default function SnackAnalyzer() {
                           </div>
                       </div>
                       {snackResult.commentary && (
-                          <div className="mt-6 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg">
+                          <div className="mt-6 p-4 bg-amber-50 border-l-4 border-primary rounded-r-lg">
                               <div className="flex">
                                   <div className="flex-shrink-0">
-                                      <MessageSquareQuote className="h-5 w-5 text-amber-500" aria-hidden="true" />
+                                      <MessageSquareQuote className="h-5 w-5 text-primary" aria-hidden="true" />
                                   </div>
                                   <div className="ml-3">
-                                      <p className="text-sm text-amber-800">
+                                      <p className="text-sm text-yellow-800">
                                           {snackResult.commentary}
                                       </p>
                                   </div>
