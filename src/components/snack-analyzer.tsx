@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useState } from 'react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from 'recharts';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,7 +44,6 @@ export default function SnackAnalyzer() {
   const [snackResult, setSnackResult] = useState<SnackResult | null>(null);
   const { toast } = useToast();
   const [leaderboard, setLeaderboard] = useState<SnackData[]>(initialLeaderboard);
-  const [chartData, setChartData] = useState<{ snack: string; area: number; fill: string; }[]>([]);
 
   const updateLeaderboard = (snackName: string, area: number, type: 'parippuvada' | 'vazhaikkapam') => {
     const newSnack: SnackData = { name: snackName, area, type };
@@ -72,19 +71,16 @@ export default function SnackAnalyzer() {
     }
   };
   
-  useEffect(() => {
-    const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
-    const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
+  const latestParippuvada = leaderboard.find(s => s.type === 'parippuvada');
+  const latestVazhaikkapam = leaderboard.find(s => s.type === 'vazhaikkapam');
 
-    const data = [];
-    if (latestParippuvada) {
-        data.push({ snack: 'Parippuvada', area: latestParippuvada.area, fill: 'var(--color-parippuvada)' });
-    }
-    if (latestVazhaikkapam) {
-        data.push({ snack: 'Vazhaikkapam', area: latestVazhaikkapam.area, fill: 'var(--color-vazhaikkapam)' });
-    }
-    setChartData(data);
-  }, [leaderboard]);
+  const chartData = [];
+  if (latestParippuvada) {
+      chartData.push({ snack: 'Parippuvada', area: latestParippuvada.area, fill: 'var(--color-parippuvada)' });
+  }
+  if (latestVazhaikkapam) {
+      chartData.push({ snack: 'Vazhaikkapam', area: latestVazhaikkapam.area, fill: 'var(--color-vazhaikkapam)' });
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
