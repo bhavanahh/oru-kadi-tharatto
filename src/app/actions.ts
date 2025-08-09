@@ -77,7 +77,7 @@ export async function analyzeAndCompareSnack(data: SnackDimensionsInput): Promis
         console.error("Error from getSnackDimensions:", dimensionsResult.error);
         return {
             ...errorResult,
-            error: dimensionsResult.error || 'Aalae patttikunno? he?',
+            error: dimensionsResult.error || 'Aalae pattikunno? he?',
             ...getWinners(),
         };
     }
